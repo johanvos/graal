@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.oracle.svm.core.meta.SubstrateObjectConstant;
 import org.graalvm.compiler.api.replacements.SnippetReflectionProvider;
 
 import com.oracle.svm.core.util.VMError;
@@ -123,6 +124,8 @@ public class AnnotationSubstitutionField extends CustomSubstitutionField {
                 } else {
                     throw VMError.shouldNotReachHere(ex);
                 }
+            } catch (Throwable t) {
+                return SubstrateObjectConstant.forObject(null);
             }
 
             result = snippetReflection.forBoxed(getJavaKind(), annotationFieldValue);
