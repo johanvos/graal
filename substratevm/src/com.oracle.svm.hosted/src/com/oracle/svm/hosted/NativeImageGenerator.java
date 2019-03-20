@@ -59,6 +59,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import jdk.vm.ci.aarch64.AArch64;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.compiler.api.replacements.Fold;
 import org.graalvm.compiler.api.replacements.SnippetReflectionProvider;
@@ -72,6 +73,7 @@ import org.graalvm.compiler.core.phases.EconomyCompilerConfiguration;
 import org.graalvm.compiler.debug.DebugContext;
 import org.graalvm.compiler.debug.DebugDumpScope;
 import org.graalvm.compiler.debug.DebugHandlersFactory;
+import org.graalvm.compiler.debug.GraalError;
 import org.graalvm.compiler.debug.Indent;
 import org.graalvm.compiler.graph.Node;
 import org.graalvm.compiler.hotspot.GraalHotSpotVMConfig;
@@ -105,6 +107,7 @@ import org.graalvm.compiler.phases.tiers.Suites;
 import org.graalvm.compiler.phases.util.Providers;
 import org.graalvm.compiler.printer.GraalDebugHandlersFactory;
 import org.graalvm.compiler.replacements.NodeIntrinsificationProvider;
+import org.graalvm.compiler.replacements.aarch64.AArch64GraphBuilderPlugins;
 import org.graalvm.compiler.replacements.amd64.AMD64GraphBuilderPlugins;
 import org.graalvm.compiler.word.WordOperationPlugin;
 import org.graalvm.compiler.word.WordTypes;
@@ -386,6 +389,20 @@ public class NativeImageGenerator {
             boolean inlineObjects = SubstrateOptions.SpawnIsolates.getValue();
             int deoptScratchSpace = 2 * 8; // Space for two 64-bit registers: rax and xmm0
             return new SubstrateTargetDescription(architecture, true, 16, 0, inlineObjects, deoptScratchSpace);
+        } else if (includedIn(platform, Platform.AArch64.class)) {
+                     Architecture architecture;
+            if (NativeImageOptions.NativeArchitecture.getValue()) {
+                architecture = GraalAccess.getOriginalTarget().arch;
+            } else {
+                EnumSet<AArch64.CPUFeature> features = EnumSet.noneOf(AArch64.CPUFeature.class);
+                features.addAll(parseCSVtoEnum(AArch64.CPUFeature.class, NativeImageOptions.CPUFeatures.getValue()));
+                architecture = new AArch64(features, EnumSet.noneOf(AArch64.Flag.class));
+            }
+            boolean inlineObjects = SubstrateOptions.SpawnIsolates.getValue();
+            int deoptScratchSpace = 2 * 8; // Space for two 64-bit registers.
+            return new SubstrateTargetDescription(architecture, true, 16, 0, inlineObjects, deoptScratchSpace);
+
+
         } else {
             throw UserError.abort("Architecture specified by platform is not supported: " + platform.getClass().getTypeName());
         }
@@ -1117,8 +1134,19 @@ public class NativeImageGenerator {
         BytecodeProvider replacementBytecodeProvider = replacements.getDefaultReplacementBytecodeProvider();
         final boolean explicitUnsafeNullChecks = SubstrateOptions.SpawnIsolates.getValue();
         registerInvocationPlugins(providers.getMetaAccess(), providers.getSnippetReflection(), plugins.getInvocationPlugins(), replacementBytecodeProvider, !hosted, explicitUnsafeNullChecks);
-        AMD64GraphBuilderPlugins.register(plugins, replacementBytecodeProvider, (AMD64) ConfigurationValues.getTarget().arch, explicitUnsafeNullChecks,
-                        SubstrateOptions.EmitStringEncodingSubstitutions.getValue() && JAVA_SPECIFICATION_VERSION >= 9);
+        Architecture architecture = ConfigurationValues.getTarget().arch;
+        if (architecture instanceof AMD64) {
+            AMD64GraphBuilderPlugins.register(plugins, replacementBytecodeProvider, (AMD64) architecture, explicitUnsafeNullChecks,
+                    SubstrateOptions.EmitStringEncodingSubstitutions.getValue() && JAVA_SPECIFICATION_VERSION >= 9);
+        } else if (architecture instanceof AArch64) {
+            AArch64GraphBuilderPlugins.register(plugins, replacementBytecodeProvider, explicitUnsafeNullChecks);
+        } else {
+            throw GraalError.shouldNotReachHere("Unimplemented GraphBuilderPlugin for architecture " + architecture);
+        }
+
+
+//        AMD64GraphBuilderPlugins.register(plugins, replacementBytecodeProvider, (AMD64) ConfigurationValues.getTarget().arch, explicitUnsafeNullChecks,
+//                        SubstrateOptions.EmitStringEncodingSubstitutions.getValue() && JAVA_SPECIFICATION_VERSION >= 9);
 
         /*
          * When the context is hosted, i.e., ahead-of-time compilation, and after the analysis we

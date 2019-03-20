@@ -256,12 +256,21 @@ public class CFGPrinterObserver implements DebugDumpHandler {
 
         static {
             DisassemblerProvider selected = null;
+            String arch = System.getProperty("os.arch");
             for (DisassemblerProvider d : GraalServices.load(DisassemblerProvider.class)) {
                 String name = d.getName().toLowerCase();
-                if (name.contains("hcf") || name.contains("hexcodefile")) {
-                    selected = d;
-                    break;
+                if (arch.equals("aarch64")) {
+                    if (name.contains("hsdis")) {
+                        selected = d;
+                        break;
+                    }
+                } else {
+                    if (name.contains("hcf") || name.contains("hexcodefile")) {
+                        selected = d;
+                        break;
+                    }
                 }
+
             }
             if (selected == null) {
                 selected = new DisassemblerProvider() {

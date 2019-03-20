@@ -323,6 +323,9 @@ public class MethodTypeFlow extends TypeFlow<AnalysisMethod> {
                     throw AnalysisError.parsingError(method, ex);
                 }
             } catch (Throwable t) {
+                System.err.println("PARSE ERROR");
+                t.printStackTrace();
+                System.err.println("THAT WAS PARSE ERROR");
                 /* Wrap all other errors as parsing errors. */
                 throw AnalysisError.parsingError(method, t);
             }

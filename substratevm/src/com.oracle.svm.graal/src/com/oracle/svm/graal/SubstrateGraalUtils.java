@@ -31,6 +31,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 
+import com.oracle.svm.core.CPUFeatureAccess;
 import org.graalvm.compiler.code.CompilationResult;
 import org.graalvm.compiler.core.CompilationWrapper;
 import org.graalvm.compiler.core.CompilationWrapper.ExceptionAction;
@@ -61,6 +62,7 @@ import com.oracle.svm.graal.meta.SubstrateMethod;
 
 import jdk.vm.ci.amd64.AMD64;
 import jdk.vm.ci.code.InstalledCode;
+import org.graalvm.nativeimage.ImageSingletons;
 
 public class SubstrateGraalUtils {
 
@@ -183,8 +185,11 @@ public class SubstrateGraalUtils {
         if (!architectureInitialized) {
             architectureInitialized = true;
 
-            AMD64CPUFeatureAccess.verifyHostSupportsArchitecture(graalBackend.getCodeCache().getTarget().arch);
-
+            CPUFeatureAccess cpuFeatureAccess = ImageSingletons.lookup(CPUFeatureAccess.class);
+            if (cpuFeatureAccess != null) {
+                cpuFeatureAccess.verifyHostSupportsArchitecture(graalBackend.getCodeCache().getTarget().arch);
+            }
+// TODO JV: do we need this?
             AMD64 architecture = (AMD64) graalBackend.getCodeCache().getTarget().arch;
             EnumSet<AMD64.CPUFeature> features = AMD64CPUFeatureAccess.determineHostCPUFeatures();
             architecture.getFeatures().addAll(features);

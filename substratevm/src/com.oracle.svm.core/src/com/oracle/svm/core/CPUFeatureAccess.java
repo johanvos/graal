@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,20 +22,10 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package org.graalvm.compiler.lir.aarch64;
+package com.oracle.svm.core;
 
-import org.graalvm.compiler.lir.gen.ArithmeticLIRGeneratorTool;
+import jdk.vm.ci.code.Architecture;
 
-import jdk.vm.ci.meta.Value;
-
-/**
- * This interface can be used to generate AArch64 LIR for arithmetic operations.
- */
-public interface AArch64ArithmeticLIRGeneratorTool extends ArithmeticLIRGeneratorTool {
-
-    Value emitCountLeadingZeros(Value value);
-
-    Value emitCountTrailingZeros(Value value);
-
-    Value emitRound(Value value, RoundingMode mode);
+public interface CPUFeatureAccess {
+    public void verifyHostSupportsArchitecture(Architecture imageArchitecture);
 }
