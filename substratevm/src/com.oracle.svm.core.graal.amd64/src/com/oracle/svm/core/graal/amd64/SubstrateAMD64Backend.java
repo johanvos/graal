@@ -37,6 +37,7 @@ import static org.graalvm.compiler.lir.LIRValueUtil.asConstantValue;
 
 import java.util.Collection;
 
+import jdk.vm.ci.code.StackSlot;
 import org.graalvm.compiler.asm.amd64.AMD64Address;
 import org.graalvm.compiler.asm.amd64.AMD64Address.Scale;
 import org.graalvm.compiler.asm.amd64.AMD64Assembler;
@@ -101,6 +102,7 @@ import org.graalvm.compiler.nodes.ValueNode;
 import org.graalvm.compiler.nodes.spi.NodeLIRBuilderTool;
 import org.graalvm.compiler.nodes.spi.NodeValueMap;
 import org.graalvm.compiler.options.OptionValues;
+import org.graalvm.compiler.phases.Phase;
 import org.graalvm.compiler.phases.common.AddressLoweringPhase;
 import org.graalvm.compiler.phases.util.Providers;
 import org.graalvm.nativeimage.Feature;
@@ -530,6 +532,13 @@ public class SubstrateAMD64Backend extends SubstrateBackend implements LIRGenera
             append(new AMD64CGlobalDataLoadAddressOp(node.getDataInfo(), result));
             setResult(node, result);
         }
+
+        @Override
+        public Variable emitReadReturnAddress() {
+            assert FrameAccess.returnAddressSize() > 0;
+            return getLIRGeneratorTool().emitMove(StackSlot.get(getLIRGeneratorTool().getLIRKind(FrameAccess.getWordStamp()), -FrameAccess.returnAddressSize(), true));
+        }
+
     }
 
     protected static class SubstrateAMD64FrameContext implements FrameContext {
@@ -843,10 +852,12 @@ public class SubstrateAMD64Backend extends SubstrateBackend implements LIRGenera
     }
 
     @Override
-    public AddressLoweringPhase.AddressLowering newAddressLowering(CodeCacheProvider codeCache) {
+    public Phase newAddressLoweringPhase(CodeCacheProvider codeCache) {
+//    public AddressLoweringPhase.AddressLowering newAddressLowering(CodeCacheProvider codeCache) {
         CompressEncoding compressEncoding = ImageSingletons.lookup(CompressEncoding.class);
         SubstrateRegisterConfig registerConfig = (SubstrateRegisterConfig) codeCache.getRegisterConfig();
-        return new SubstrateAMD64AddressLowering(compressEncoding, registerConfig);
+        return new AddressLoweringPhase(new SubstrateAMD64AddressLowering(compressEncoding, registerConfig));
+//        return new SubstrateAMD64AddressLowering(compressEncoding, registerConfig);
     }
 
     @Override

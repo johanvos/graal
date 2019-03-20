@@ -71,6 +71,9 @@ public interface Platform {
     interface AMD64 extends Platform {
     }
 
+    interface AArch64 extends Platform {
+    }
+
     /*
      * The standard operating systems that we support.
      */
@@ -153,6 +156,11 @@ public interface Platform {
         }
     }
 
+    final class LINUX_AArch64 implements LINUX, LINUX_AND_JNI, AArch64 {
+        public LINUX_AArch64() {
+        }
+    }
+
     /**
      * Supported leaf platform: Darwin (MacOS) on x86 64-bit.
      *
@@ -166,6 +174,11 @@ public interface Platform {
          * @since 1.0
          */
         public DARWIN_AMD64() {
+        }
+    }
+
+    final class DARWIN_AArch64 implements DARWIN, DARWIN_AND_JNI, AArch64 {
+        public DARWIN_AArch64() {
         }
     }
 
