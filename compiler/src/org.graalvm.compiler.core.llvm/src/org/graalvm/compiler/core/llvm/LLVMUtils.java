@@ -140,7 +140,7 @@ public class LLVMUtils {
         return builder.toString();
     }
 
-    static class LLVMVariable extends Variable implements LLVMValueWrapper {
+    public static class LLVMVariable extends Variable implements LLVMValueWrapper {
         private static int id = 0;
 
         private LLVMValueRef value;
@@ -153,7 +153,7 @@ public class LLVMUtils {
             this(LLVMKind.toLIRKind(type));
         }
 
-        LLVMVariable(LLVMValueRef value) {
+        public LLVMVariable(LLVMValueRef value) {
             this(LLVM.LLVMTypeOf(value));
             this.value = value;
         }

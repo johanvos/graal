@@ -28,6 +28,10 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.oracle.svm.core.CPUFeatureAccess;
+import com.oracle.svm.core.annotate.AutomaticFeature;
+import org.graalvm.nativeimage.Feature;
+import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.Platform;
 import org.graalvm.nativeimage.Platforms;
 import org.graalvm.nativeimage.StackValue;
@@ -41,7 +45,17 @@ import com.oracle.svm.core.util.VMError;
 import jdk.vm.ci.amd64.AMD64;
 import jdk.vm.ci.code.Architecture;
 
-public class AMD64CPUFeatureAccess {
+
+@AutomaticFeature
+@Platforms(Platform.AMD64.class)
+class AMD64CPUFeatureAccessFeature implements Feature {
+    @Override
+    public void afterRegistration(AfterRegistrationAccess access) {
+        ImageSingletons.add(CPUFeatureAccess.class, new AMD64CPUFeatureAccess());
+    }
+}
+
+public class AMD64CPUFeatureAccess implements CPUFeatureAccess {
     @Platforms(Platform.AMD64.class)
     public static EnumSet<AMD64.CPUFeature> determineHostCPUFeatures() {
         EnumSet<AMD64.CPUFeature> features = EnumSet.noneOf(AMD64.CPUFeature.class);
@@ -151,7 +165,8 @@ public class AMD64CPUFeatureAccess {
         return features;
     }
 
-    public static void verifyHostSupportsArchitecture(Architecture imageArchitecture) {
+    @Override
+    public void verifyHostSupportsArchitecture(Architecture imageArchitecture) {
         AMD64 architecture = (AMD64) imageArchitecture;
         EnumSet<AMD64.CPUFeature> features = determineHostCPUFeatures();
 

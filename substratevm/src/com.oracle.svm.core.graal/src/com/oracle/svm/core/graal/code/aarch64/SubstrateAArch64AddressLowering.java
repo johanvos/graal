@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,20 +22,14 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package org.graalvm.compiler.lir.aarch64;
+package com.oracle.svm.core.graal.code.aarch64;
 
-import org.graalvm.compiler.lir.gen.ArithmeticLIRGeneratorTool;
+import org.graalvm.compiler.core.aarch64.AArch64AddressLoweringByUse;
 
-import jdk.vm.ci.meta.Value;
+import com.oracle.svm.core.graal.code.aarch64.SubstrateAArch64Backend.SubstrateAArch64LIRKindTool;
 
-/**
- * This interface can be used to generate AArch64 LIR for arithmetic operations.
- */
-public interface AArch64ArithmeticLIRGeneratorTool extends ArithmeticLIRGeneratorTool {
-
-    Value emitCountLeadingZeros(Value value);
-
-    Value emitCountTrailingZeros(Value value);
-
-    Value emitRound(Value value, RoundingMode mode);
+public class SubstrateAArch64AddressLowering extends AArch64AddressLoweringByUse {
+    public SubstrateAArch64AddressLowering() {
+        super(new SubstrateAArch64LIRKindTool());
+    }
 }
