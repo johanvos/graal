@@ -43,6 +43,9 @@ import com.oracle.svm.core.hub.ClassForNameSupport;
 import com.oracle.svm.core.hub.DynamicHub;
 import com.oracle.svm.core.jdk.JavaLangSubstitutions.ClassLoaderSupport;
 import com.oracle.svm.core.util.VMError;
+import org.graalvm.nativeimage.Platform;
+import org.graalvm.nativeimage.Platforms;
+
 
 @TargetClass(ClassLoader.class)
 @Substitute
@@ -139,7 +142,10 @@ public final class Target_java_lang_ClassLoader {
     @Substitute //
     @TargetElement(onlyWith = JDK9OrLater.class) //
     public static ClassLoader getPlatformClassLoader() {
-        throw VMError.unsupportedFeature("JDK9OrLater: Target_java_lang_ClassLoader.getPlatformClassLoader()");
+        return KnownIntrinsics.unsafeCast(ClassLoaderSupport.getInstance().platformClassLoader, ClassLoader.class);
+
+     //   return getSystemClassLoader();
+//        throw VMError.unsupportedFeature("JDK9OrLater: Target_java_lang_ClassLoader.getPlatformClassLoader()");
     }
 
     @Substitute //
