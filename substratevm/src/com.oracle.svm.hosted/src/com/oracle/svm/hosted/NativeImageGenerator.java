@@ -513,7 +513,6 @@ public class NativeImageGenerator {
                     SubstitutionProcessor harnessSubstitutions,
                     ForkJoinPool compilationExecutor, ForkJoinPool analysisExecutor) {
         List<HostedMethod> hostedEntryPoints = new ArrayList<>();
-
         OptionValues options = HostedOptionValues.singleton();
         SnippetReflectionProvider originalSnippetReflection = GraalAccess.getOriginalSnippetReflection();
         try (DebugContext debug = DebugContext.create(options, new GraalDebugHandlersFactory(originalSnippetReflection))) {
@@ -637,7 +636,10 @@ public class NativeImageGenerator {
                     throw VMError.shouldNotReachHere(e);
                 }
             }
-
+if (k.equals(NativeImageKind.SHARED_LIBRARY)) {
+    System.err.println("Nothing else to do");
+    return;
+}
             BeforeImageWriteAccessImpl beforeConfig = new BeforeImageWriteAccessImpl(featureHandler, loader, imageName, image,
                             runtime.getRuntimeConfig(), aUniverse, hUniverse, optionProvider, hMetaAccess, debug);
             featureHandler.forEachFeature(feature -> feature.beforeImageWrite(beforeConfig));
