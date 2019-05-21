@@ -645,10 +645,6 @@ public class NativeImageGenerator {
                     throw VMError.shouldNotReachHere(e);
                 }
             }
-if (k.equals(NativeImageKind.SHARED_LIBRARY)) {
-    System.err.println("Nothing else to do");
-    return;
-}
             BeforeImageWriteAccessImpl beforeConfig = new BeforeImageWriteAccessImpl(featureHandler, loader, imageName, image,
                             runtime.getRuntimeConfig(), aUniverse, hUniverse, optionProvider, hMetaAccess, debug);
             featureHandler.forEachFeature(feature -> feature.beforeImageWrite(beforeConfig));
