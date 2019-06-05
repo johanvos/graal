@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,29 +22,30 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package com.oracle.svm.core.posix.headers.linux;
+package com.oracle.svm.graal.hotspot.libgraal;
 
-import org.graalvm.nativeimage.Platform;
-import org.graalvm.nativeimage.Platforms;
-import org.graalvm.nativeimage.c.function.CFunction;
-import org.graalvm.nativeimage.c.function.CLibrary;
-import org.graalvm.nativeimage.c.type.CCharPointer;
-
-import com.oracle.svm.core.annotate.Substitute;
+import com.oracle.svm.core.annotate.Alias;
+import com.oracle.svm.core.annotate.RecomputeFieldValue;
 import com.oracle.svm.core.annotate.TargetClass;
 
-@Platforms(Platform.LINUX.class)
-class LinuxUnistd {
+import jdk.vm.ci.services.Services;
 
-    @TargetClass(com.oracle.svm.core.posix.headers.Unistd.class)
-    static final class Target_com_oracle_svm_core_posix_headers_Unistd {
+/** Dummy class to have a class with the file's name. Do not remove. */
+public final class LibGraalSubstitutions {
+    // Dummy
+}
 
-        /*
-         * This substitution exists so that images will only be linked with libcrypt on Linux.
-         */
-        @Substitute
-        @CFunction
-        @CLibrary("crypt")
-        public static native CCharPointer crypt(CCharPointer key, CCharPointer salt);
-    }
+@TargetClass(value = Services.class, onlyWith = LibGraalFeature.IsEnabled.class)
+final class Target_jdk_vm_ci_services_Services {
+    // Checkstyle: stop
+    @Alias @RecomputeFieldValue(kind = RecomputeFieldValue.Kind.FromAlias, isFinal = true)//
+    public static boolean IS_IN_NATIVE_IMAGE = true;
+    // Checkstyle: resume
+}
+
+@TargetClass(className = "jdk.vm.ci.hotspot.HotSpotJDKReflection", onlyWith = LibGraalFeature.IsEnabled.class)
+final class Target_jdk_vm_ci_hotspot_HotSpotJDKReflection {
+
+    @Alias @RecomputeFieldValue(kind = RecomputeFieldValue.Kind.None)//
+    private long oopSizeOffset;
 }

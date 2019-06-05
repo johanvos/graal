@@ -288,6 +288,7 @@ import org.graalvm.compiler.bytecode.ResolvedJavaMethodBytecode;
 import org.graalvm.compiler.bytecode.ResolvedJavaMethodBytecodeProvider;
 import org.graalvm.compiler.core.common.GraalOptions;
 import org.graalvm.compiler.core.common.PermanentBailoutException;
+import org.graalvm.compiler.core.common.RetryableBailoutException;
 import org.graalvm.compiler.core.common.calc.CanonicalCondition;
 import org.graalvm.compiler.core.common.calc.Condition;
 import org.graalvm.compiler.core.common.calc.Condition.CanonicalizedCondition;
@@ -355,6 +356,7 @@ import org.graalvm.compiler.nodes.StateSplit;
 import org.graalvm.compiler.nodes.StructuredGraph;
 import org.graalvm.compiler.nodes.UnwindNode;
 import org.graalvm.compiler.nodes.ValueNode;
+import org.graalvm.compiler.nodes.ValuePhiNode;
 import org.graalvm.compiler.nodes.calc.AddNode;
 import org.graalvm.compiler.nodes.calc.AndNode;
 import org.graalvm.compiler.nodes.calc.CompareNode;
@@ -627,7 +629,8 @@ public class BytecodeParser implements GraphBuilderContext {
     }
 
     static class IntrinsicScope extends InliningScope {
-        boolean sawInvalidFrameState;
+        StateSplit returnStateSplit;
+        ArrayList<StateSplit> invalidStateUsers;
 
         IntrinsicScope(BytecodeParser parser) {
             super(parser);
@@ -650,30 +653,64 @@ public class BytecodeParser implements GraphBuilderContext {
                 isRootCompilation = false;
             }
             processPlaceholderFrameStates(isRootCompilation);
-            if (sawInvalidFrameState) {
+            if (invalidStateUsers != null) {
                 JavaKind returnKind = parser.getInvokeReturnType().getJavaKind();
-                FrameStateBuilder frameStateBuilder = parser.frameState;
-                ValueNode returnValue = frameStateBuilder.pop(returnKind);
-                StructuredGraph graph = parser.lastInstr.graph();
-                StateSplitProxyNode proxy = graph.add(new StateSplitProxyNode(returnValue));
-                parser.lastInstr.setNext(proxy);
-                frameStateBuilder.push(returnKind, proxy);
-                proxy.setStateAfter(parser.createFrameState(parser.stream.nextBCI(), proxy));
-                parser.lastInstr = proxy;
+                ValueNode returnValue = parser.frameState.pop(returnKind);
+                if (invalidStateUsers.size() == 1 && invalidStateUsers.get(0) == parser.lastInstr) {
+                    updateSplitFrameState(invalidStateUsers.get(0), returnKind, returnValue);
+                } else if (parser.lastInstr instanceof MergeNode) {
+                    ValuePhiNode returnValues = null;
+                    MergeNode merge = (MergeNode) parser.lastInstr;
+
+                    if (returnValue instanceof ValuePhiNode && ((ValuePhiNode) returnValue).merge() == parser.lastInstr) {
+                        returnValues = (ValuePhiNode) returnValue;
+                    }
+                    if (invalidStateUsers.remove(merge)) {
+                        updateSplitFrameState(merge, returnKind, returnValue);
+                    }
+                    for (EndNode pred : merge.cfgPredecessors()) {
+                        Node lastPred = pred.predecessor();
+                        if (invalidStateUsers.remove(lastPred)) {
+                            ValueNode predReturnValue = returnValue;
+                            if (returnValues != null) {
+                                int index = merge.phiPredecessorIndex(pred);
+                                predReturnValue = ((ValuePhiNode) returnValue).valueAt(index);
+                            }
+                            updateSplitFrameState((StateSplit) lastPred, returnKind, predReturnValue);
+                        }
+                    }
+                    if (invalidStateUsers.size() != 0) {
+                        throw new GraalError("unexpected StateSplit above merge %s", invalidStateUsers);
+                    }
+                } else {
+                    throw new GraalError("unexpected node between return StateSplit and last instruction %s", parser.lastInstr);
+                }
+                // Restore the original return value
+                parser.frameState.push(returnKind, returnValue);
+            }
+        }
+
+        private void updateSplitFrameState(StateSplit split, JavaKind returnKind, ValueNode returnValue) {
+            parser.frameState.push(returnKind, returnValue);
+            FrameState oldState = split.stateAfter();
+            split.setStateAfter(parser.createFrameState(parser.stream.nextBCI(), split));
+            parser.frameState.pop(returnKind);
+            if (oldState.hasNoUsages()) {
+                oldState.safeDelete();
             }
         }
 
         @Override
         protected void handleReturnMismatch(StructuredGraph g, FrameState fs) {
-            // If the intrinsic returns a non-void value, then any frame
-            // state with an empty stack is invalid as it cannot
-            // be used to deoptimize to just after the call returns.
-            // These invalid frame states are expected to be removed
-            // by later compilation stages.
-            FrameState newFrameState = g.add(new FrameState(BytecodeFrame.INVALID_FRAMESTATE_BCI));
-            newFrameState.setNodeSourcePosition(fs.getNodeSourcePosition());
-            fs.replaceAndDelete(newFrameState);
-            sawInvalidFrameState = true;
+            if (invalidStateUsers == null) {
+                invalidStateUsers = new ArrayList<>();
+            }
+            for (Node use : fs.usages()) {
+                if (!(use instanceof StateSplit)) {
+                    throw new GraalError("Expected StateSplit for return mismatch");
+                }
+                invalidStateUsers.add((StateSplit) use);
+            }
         }
     }
 
@@ -998,6 +1035,11 @@ public class BytecodeParser implements GraphBuilderContext {
                 GraphUtil.unlinkFixedNode(beginNode);
                 beginNode.safeDelete();
             }
+        }
+        if (graph.isOSR() && getParent() == null && graph.getNodes().filter(EntryMarkerNode.class).isEmpty()) {
+            // This should generally be a transient condition because of inconsistent profile
+            // information.
+            throw new RetryableBailoutException("OSR entry point wasn't parsed");
         }
     }
 
@@ -1734,10 +1776,7 @@ public class BytecodeParser implements GraphBuilderContext {
             return null;
         }
 
-        JavaType returnType = targetMethod.getSignature().getReturnType(method.getDeclaringClass());
-        if (graphBuilderConfig.eagerResolving() || parsingIntrinsic()) {
-            returnType = returnType.resolve(targetMethod.getDeclaringClass());
-        }
+        JavaType returnType = maybeEagerlyResolve(targetMethod.getSignature().getReturnType(method.getDeclaringClass()), targetMethod.getDeclaringClass());
         if (invokeKind.hasReceiver()) {
             args[0] = maybeEmitExplicitNullCheck(args[0]);
         }
@@ -2642,7 +2681,6 @@ public class BytecodeParser implements GraphBuilderContext {
 
             List<ReturnToCallerData> calleeReturnDataList = parser.returnDataList;
 
-            processCalleeReturn(targetMethod, s, calleeReturnDataList);
             /*
              * Propagate any side effects into the caller when parsing intrinsics.
              */
@@ -2651,6 +2689,8 @@ public class BytecodeParser implements GraphBuilderContext {
                     frameState.addSideEffect(sideEffect);
                 }
             }
+
+            processCalleeReturn(targetMethod, s, calleeReturnDataList);
 
             calleeBeforeUnwindNode = parser.getBeforeUnwindNode();
             if (calleeBeforeUnwindNode != null) {
@@ -4322,6 +4362,13 @@ public class BytecodeParser implements GraphBuilderContext {
                 }
             }
         }
+    }
+
+    protected JavaType maybeEagerlyResolve(JavaType type, ResolvedJavaType accessingClass) {
+        if (graphBuilderConfig.eagerResolving() || parsingIntrinsic()) {
+            return type.resolve(accessingClass);
+        }
+        return type;
     }
 
     protected void maybeEagerlyInitialize(ResolvedJavaType resolvedType) {

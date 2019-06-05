@@ -421,8 +421,7 @@ class BaseGraalVmLayoutDistribution(mx.LayoutDistribution):
                 _add_native_image_macro(_library_config, _component)
             for _provided_executable in _component.provided_executables:
                 if _component.short_name is 'vvm':
-                    _vvm_launcher_dest = _jdk_jre_bin + '/jvisualvm.exe' if mx.get_os() == 'windows' else _jdk_jre_bin
-                    _add(layout, _vvm_launcher_dest, 'extracted-dependency:tools:VISUALVM_PLATFORM_SPECIFIC/./' + _provided_executable, _component)
+                    _add(layout, _jdk_jre_bin, 'extracted-dependency:tools:VISUALVM_PLATFORM_SPECIFIC/./' + _provided_executable, _component)
                 else:
                     _link_dest = _component_base + _provided_executable
                     _link_path = _add_link(_jdk_jre_bin, _link_dest, _component)
@@ -2121,7 +2120,7 @@ def check_versions(jdk_dir, jdk_version_regex, graalvm_version_regex, expect_gra
     match = jdk_version_regex.match(out)
     if match is None:
         mx.abort("'{}' has an unexpected version string:\n{}\ndoes not match:\n{}".format(jdk_dir, out, jdk_version_regex.pattern))
-    elif not (match.group('jvm_version').startswith("1.8.0") or match.group('jvm_version').startswith("11")):
+    elif not (match.group('jvm_version').startswith("1.8.0") or match.group('jvm_version').startswith("11") or match.group('jvm_version').startswith("13")):
         mx.abort("GraalVM requires a JDK8 or JDK11 as base-JDK, while the selected JDK ('{}') is '{}':\n{}\n{}.".format(jdk_dir, match.group('jvm_version'), out, check_env))
 
     match = graalvm_version_regex.match(out)

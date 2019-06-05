@@ -1,7 +1,7 @@
 suite = {
-    "mxversion": "5.218.0",
+    "mxversion": "5.218.2",
     "name": "substratevm",
-    "version" : "20.0.0-beta.01",
+    "version" : "20.0.0-beta.02",
     "release" : False,
     "url" : "https://github.com/oracle/graal/tree/master/substratevm",
 
@@ -572,18 +572,6 @@ suite = {
                 "truffle:TRUFFLE_DSL_PROCESSOR",
             ],
             "workingSets": "SVM",
-            "os_arch": {
-                "windows": {
-                    "<others>": {
-                        "ignore": "posix only project",
-                    },
-                },
-                "<others>": {
-                    "<others>": {
-                        "ignore": False,
-                    },
-                },
-            },
         },
 
         "com.oracle.svm.truffle.nfi.windows": {
@@ -599,18 +587,6 @@ suite = {
                 "truffle:TRUFFLE_DSL_PROCESSOR",
             ],
             "workingSets": "SVM",
-            "os_arch": {
-                "windows": {
-                    "<others>": {
-                        "ignore": False,
-                    },
-                },
-                "<others>": {
-                    "<others>": {
-                        "ignore": "only windows is supported",
-                    },
-                },
-            },
         },
 
         "com.oracle.svm.jline": {
@@ -680,7 +656,8 @@ suite = {
                 "compiler:GRAAL"
             ],
             "checkstyle" : "com.oracle.svm.hosted",
-            "javaCompliance": "1.8",
+            "javaCompliance": "8+",
+            "javaVersionExclusion": "11",
             "annotationProcessors": [
                 "compiler:GRAAL_NODEINFO_PROCESSOR",
                 "compiler:GRAAL_REPLACEMENTS_PROCESSOR",
@@ -836,6 +813,8 @@ suite = {
         "GRAAL_HOTSPOT_LIBRARY": {
             "subDir": "src",
             "description" : "SubstrateVM HotSpot Graal library support",
+            "javaCompliance": "8+",
+            "javaVersionExclusion": "11",
             "dependencies": [
                 "com.oracle.svm.graal.hotspot.libgraal",
             ],

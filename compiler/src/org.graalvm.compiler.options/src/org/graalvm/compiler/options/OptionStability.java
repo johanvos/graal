@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,33 +22,22 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+package org.graalvm.compiler.options;
 
-package com.oracle.svm.core.log;
+/**
+ * Categorizes options according to their stability.
+ */
+public enum OptionStability {
 
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
+    /**
+     * A stable option is expected to remain available for many releases. End users can rely on such
+     * an option being present. A stable option can still be removed but will go through a clear
+     * deprecating process before being removed.
+     */
+    STABLE,
 
-import com.oracle.svm.core.SubstrateUtil;
-import com.oracle.svm.core.annotate.Uninterruptible;
-
-public class FileLog extends RealLog {
-    private FileOutputStream out;
-
-    public FileLog setOutputStream(FileOutputStream out) {
-        this.out = out;
-        return this;
-    }
-
-    @Uninterruptible(reason = "Called from uninterruptible code.")
-    @Override
-    protected FileDescriptor getOutputFile() {
-        if (out == null) {
-            /*
-             * Avoid a NullPointerException when log output file is not yet set, e.g., during early
-             * startup phases.
-             */
-            return FileDescriptor.err;
-        }
-        return SubstrateUtil.getFileDescriptor(out);
-    }
+    /**
+     * An experimental option has no guarantees of stability and might be removed at any point.
+     */
+    EXPERIMENTAL
 }

@@ -24,9 +24,6 @@
  */
 package org.graalvm.compiler.lir.gen;
 
-import java.util.BitSet;
-import java.util.List;
-
 import org.graalvm.compiler.core.common.CompressEncoding;
 import org.graalvm.compiler.core.common.LIRKind;
 import org.graalvm.compiler.core.common.calc.Condition;
@@ -324,8 +321,8 @@ public interface LIRGeneratorTool extends DiagnosticLIRGeneratorTool, ValueKindF
      */
     void emitSpeculationFence();
 
-    default VirtualStackSlot allocateStackSlots(int slots, BitSet objects, List<VirtualStackSlot> outObjectStackSlots) {
-        return getResult().getFrameMapBuilder().allocateStackSlots(slots, objects, outObjectStackSlots);
+    default VirtualStackSlot allocateStackSlots(int slots) {
+        return getResult().getFrameMapBuilder().allocateStackSlots(slots);
     }
 
     default Value emitReadCallerStackPointer(Stamp wordStamp) {
@@ -339,5 +336,9 @@ public interface LIRGeneratorTool extends DiagnosticLIRGeneratorTool, ValueKindF
 
     default Value emitReadReturnAddress(Stamp wordStamp, int returnAddressSize) {
         return emitMove(StackSlot.get(getLIRKind(wordStamp), -returnAddressSize, true));
+    }
+
+    default Value emitNextVaArg(Value vaList, JavaKind kind) {
+        throw GraalError.unimplemented("Va_arg substitution is not implemented on this architecture");
     }
 }

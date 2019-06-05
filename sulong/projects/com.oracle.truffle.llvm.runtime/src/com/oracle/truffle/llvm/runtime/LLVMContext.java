@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -104,7 +103,7 @@ public final class LLVMContext {
     @CompilationFinal private LLVMThreadingStack threadingStack;
     private final Object[] mainArguments;
     private final Map<String, String> environment;
-    private final LinkedList<LLVMNativePointer> caughtExceptionStack = new LinkedList<>();
+    private final ArrayList<LLVMNativePointer> caughtExceptionStack = new ArrayList<>();
     private final HashMap<String, Integer> nativeCallStatistics;
 
     private static final class Handle {
@@ -128,14 +127,11 @@ public final class LLVMContext {
 
     private final LLVMLanguage language;
     private final Env env;
-    private final Configuration activeConfiguration;
     private final LLVMScope globalScope;
     private final DynamicLinkChain dynamicLinkChain;
     private final List<RootCallTarget> destructorFunctions;
     private final LLVMFunctionPointerRegistry functionPointerRegistry;
     private final LLVMInteropType.InteropTypeRegistry interopTypeRegistry;
-
-    private final List<ContextExtension> contextExtensions;
 
     // we are not able to clean up ThreadLocals properly, so we are using maps instead
     private final Map<Thread, Object> tls = new HashMap<>();
@@ -148,8 +144,6 @@ public final class LLVMContext {
 
     private boolean initialized;
     private boolean cleanupNecessary;
-
-    private final NodeFactory nodeFactory;
 
     private final LLVMTracerInstrument tracer;
 
@@ -170,15 +164,11 @@ public final class LLVMContext {
         }
     }
 
-    LLVMContext(LLVMLanguage language, Env env, Configuration activeConfiguration, String languageHome) {
+    LLVMContext(LLVMLanguage language, Env env, String languageHome) {
         this.language = language;
         this.env = env;
-        this.activeConfiguration = activeConfiguration;
-        this.nodeFactory = activeConfiguration.createNodeFactory(this);
-        this.contextExtensions = activeConfiguration.createContextExtensions(this);
         this.initialized = false;
         this.cleanupNecessary = false;
-
         this.dataLayout = new DataLayout();
         this.destructorFunctions = new ArrayList<>();
         this.nativeCallStatistics = SulongEngineOption.isTrue(env.getOptions().get(SulongEngineOption.NATIVE_CALL_STATS)) ? new HashMap<>() : null;
@@ -248,11 +238,11 @@ public final class LLVMContext {
     void initialize() {
         assert this.threadingStack == null;
         this.threadingStack = new LLVMThreadingStack(Thread.currentThread(), parseStackSize(env.getOptions().get(SulongEngineOption.STACK_SIZE)));
-        for (ContextExtension ext : contextExtensions) {
+        for (ContextExtension ext : language.getLanguageContextExtension()) {
             ext.initialize();
         }
         if (languageHome != null) {
-            SystemContextExtension sysContextExt = getContextExtension(SystemContextExtension.class);
+            SystemContextExtension sysContextExt = language.getContextExtension(SystemContextExtension.class);
             internalLibraryPath = Paths.get(languageHome).resolve(sysContextExt.getSulongLibrariesPath());
             // add internal library location also to the external library lookup path
             addLibraryPath(internalLibraryPath.toString());
@@ -361,8 +351,8 @@ public final class LLVMContext {
         if (freeGlobalBlocks == null) {
             freeGlobalBlocks = Truffle.getRuntime().createCallTarget(new RootNode(language) {
 
-                @Child LLVMMemoryOpNode freeRo = nodeFactory.createFreeGlobalsBlock(true);
-                @Child LLVMMemoryOpNode freeRw = nodeFactory.createFreeGlobalsBlock(false);
+                @Child LLVMMemoryOpNode freeRo = language.getNodeFactory().createFreeGlobalsBlock(true);
+                @Child LLVMMemoryOpNode freeRw = language.getNodeFactory().createFreeGlobalsBlock(false);
 
                 @Override
                 public Object execute(VirtualFrame frame) {
@@ -407,28 +397,6 @@ public final class LLVMContext {
         if (tracer != null) {
             tracer.dispose();
         }
-    }
-
-    public NodeFactory getNodeFactory() {
-        return nodeFactory;
-    }
-
-    public <T> T getContextExtension(Class<T> type) {
-        T result = getContextExtensionOrNull(type);
-        if (result != null) {
-            return result;
-        }
-        throw new IllegalStateException("No context extension for: " + type);
-    }
-
-    public <T> T getContextExtensionOrNull(Class<T> type) {
-        CompilerAsserts.neverPartOfCompilation();
-        for (ContextExtension ce : contextExtensions) {
-            if (ce.extensionClass() == type) {
-                return type.cast(ce);
-            }
-        }
-        return null;
     }
 
     public int getByteAlignment(Type type) {
@@ -542,10 +510,6 @@ public final class LLVMContext {
 
     public Env getEnv() {
         return env;
-    }
-
-    public Configuration getActiveConfiguration() {
-        return activeConfiguration;
     }
 
     public LLVMScope getGlobalScope() {
@@ -680,7 +644,7 @@ public final class LLVMContext {
         }
     }
 
-    public LinkedList<LLVMNativePointer> getCaughtExceptionStack() {
+    public List<LLVMNativePointer> getCaughtExceptionStack() {
         return caughtExceptionStack;
     }
 
@@ -884,13 +848,7 @@ public final class LLVMContext {
 
         @Override
         public String toString() {
-            StringBuilder result = new StringBuilder(name);
-            if (path != null) {
-                result.append(" (");
-                result.append(path);
-                result.append(")");
-            }
-            return result.toString();
+            return path == null ? name : name + " (" + path + ")";
         }
     }
 
