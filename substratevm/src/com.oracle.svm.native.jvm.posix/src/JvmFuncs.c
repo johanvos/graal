@@ -237,6 +237,10 @@ JNIEXPORT int JVM_RaiseSignal(int sig) {
 }
 
 JNIEXPORT void * JVM_RegisterSignal(int sig, void* handler) {
+#ifdef AARCH64
+fprintf(stderr, "RegisterSignal not implemented\n");
+return NULL;
+#else
     struct sigaction sigAct, oldSigAct;
 
     sigfillset(&(sigAct.sa_mask));
@@ -247,8 +251,8 @@ JNIEXPORT void * JVM_RegisterSignal(int sig, void* handler) {
         /* -1 means registration failed */
         return (void *)-1;
     }
-
     return CAST_FROM_FN_PTR(void*, oldSigAct.sa_handler);
+#endif
 }
 
 JNIEXPORT int JVM_Send(int fd, char* buf, size_t nBytes, uint flags) {
@@ -346,6 +350,20 @@ int jio_vfprintf(FILE* f, const char *fmt, va_list args) {
   return vfprintf(f, fmt, args);
 }
 
+int jio_vsnprintf(char *str, size_t count, const char *fmt, va_list args) {
+  int result;
+
+  if ((intptr_t)count <= 0) return -1;
+
+  result = vsnprintf(str, count, fmt, args);
+  if ((result > 0 && (size_t)result >= count) || result == -1) {
+    str[count - 1] = '\0';
+    result = -1;
+  }
+
+  return result;
+}
+
 #ifdef JNI_VERSION_9
 JNIEXPORT void JVM_AddModuleExports(JNIEnv *env, jobject from_module, const char* package, jobject to_module) {
     fprintf(stderr, "JVM_AddModuleExports called\n");
@@ -378,17 +396,4 @@ int jio_snprintf(char *str, size_t count, const char *fmt, ...) {
 }
 #endif
 
-int jio_vsnprintf(char *str, size_t count, const char *fmt, va_list args) {
-  int result;
-
-  if ((intptr_t)count <= 0) return -1;
-
-  result = vsnprintf(str, count, fmt, args);
-  if ((result > 0 && (size_t)result >= count) || result == -1) {
-    str[count - 1] = '\0';
-    result = -1;
-  }
-
-  return result;
-}
 
