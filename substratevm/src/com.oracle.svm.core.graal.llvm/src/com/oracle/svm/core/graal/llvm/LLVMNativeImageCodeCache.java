@@ -462,7 +462,7 @@ public class LLVMNativeImageCodeCache extends NativeImageCodeCache {
 
             List<String> cmd = new ArrayList<>();
             if (SubstrateOptions.MultiThreaded.getValue() && arch == LLVMUtils.Target.AArch64) {
-                cmd.add(customLLVMRoot + "/llc-aarch64-working");
+                cmd.add(customLLVMRoot + "/llc");
             } else {
                 cmd.add("llc");
             }
