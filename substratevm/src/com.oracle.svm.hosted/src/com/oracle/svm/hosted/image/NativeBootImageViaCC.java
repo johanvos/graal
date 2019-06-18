@@ -306,6 +306,11 @@ public abstract class NativeBootImageViaCC extends NativeBootImage {
             } else {
                 write(tempDirectory.resolve(imageName + ObjectFile.getFilenameSuffix()));
             }
+            if (NativeImageOptions.ExitAfterWrite.getValue()) {
+                // This copies the bitcode file to the temp directory
+                LinkerInvocation inv = getLinkerInvocation(outputDirectory, tempDirectory, imageName);
+                return null;
+            }
             // 2. run a command to make an executable of it
             int status;
             try {
