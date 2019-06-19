@@ -270,9 +270,6 @@ public abstract class NativeBootImageViaCC extends NativeBootImage {
             } else {
                 write(tempDirectory.resolve(imageName + ObjectFile.getFilenameSuffix()));
             }
-            if (NativeImageOptions.ExitAfterWrite.getValue()) {
-                return null;
-            }
             // 2. run a command to make an executable of it
             int status;
             try {
@@ -284,6 +281,9 @@ public abstract class NativeBootImageViaCC extends NativeBootImage {
                  */
 
                 LinkerInvocation inv = getLinkerInvocation(outputDirectory, tempDirectory, imageName);
+                if (NativeImageOptions.ExitAfterWrite.getValue()) {
+                    return null;
+                }
                 for (Function<LinkerInvocation, LinkerInvocation> fn : config.getLinkerInvocationTransformers()) {
                     inv = fn.apply(inv);
                 }

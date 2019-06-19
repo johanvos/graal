@@ -61,8 +61,10 @@ public class SharedLibraryViaCCBootImage extends NativeBootImageViaCC {
     @Override
     public LinkerInvocation write(DebugContext debug, Path outputDirectory, Path tempDirectory, String imageName, BeforeImageWriteAccessImpl config) {
         LinkerInvocation inv = super.write(debug, outputDirectory, tempDirectory, imageName, config);
-        writeHeaderFiles(outputDirectory, imageName, inv.getSymbolAliases(), false);
-        writeHeaderFiles(outputDirectory, imageName, inv.getSymbolAliases(), true);
+        if (inv != null) {
+            writeHeaderFiles(outputDirectory, imageName, inv.getSymbolAliases(), false);
+            writeHeaderFiles(outputDirectory, imageName, inv.getSymbolAliases(), true);
+        }
         return inv;
     }
 }
