@@ -269,6 +269,7 @@ public final class ClassInitializationInfo {
             /* Step 9: Next, execute the class or interface initialization method of C. */
             invokeClassInitializer();
         } catch (Throwable ex) {
+            System.err.println("Exception caught in invokeclinit");
             exception = ex;
         }
 
@@ -286,6 +287,8 @@ public final class ClassInitializationInfo {
              * subclasses, then create a new instance of the class ExceptionInInitializerError with
              * E as the argument, and use this object in place of E in the following step.
              */
+            System.err.println("Exception intercepted in class init: "+exception);
+            exception.printStackTrace();
             if (!(exception instanceof Error)) {
                 exception = new ExceptionInInitializerError(exception);
             }

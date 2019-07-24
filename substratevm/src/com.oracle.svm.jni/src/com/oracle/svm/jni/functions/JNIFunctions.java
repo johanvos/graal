@@ -654,8 +654,11 @@ final class JNIFunctions {
         Class<?> elementClass = JNIObjectHandles.getObject(hElementClass);
         Object[] array = null;
         if (elementClass != null) {
-            Object initialElement = JNIObjectHandles.getObject(hInitialElement);
+            System.err.println("NEED NEW OBJECT ARRAY, Class = "+elementClass);
+            Object initialElement = JNIObjectHandles.getObject(hInitialElement, true);
+            System.err.println("got initialelement, make new array now");
             array = (Object[]) Array.newInstance(elementClass, length);
+            System.err.println("created new array");
             Arrays.fill(array, initialElement);
         }
         return JNIThreadLocalHandles.get().create(array);

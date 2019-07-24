@@ -40,14 +40,24 @@ public final class JNIObjectHandles {
         return ThreadLocalHandles.nullHandle();
     }
 
+
     public static <T> T getObject(JNIObjectHandle handle) {
+        return getObject(handle, false);
+    }
+
+    public static <T> T getObject(JNIObjectHandle handle, boolean dbg) {
+        if (dbg) System.err.println("getobject");
+
         if (handle.equal(nullHandle())) {
+            if (dbg) System.err.println("Return nulll handle");
             return null;
         }
         if (ThreadLocalHandles.isInRange(handle)) {
+            if (dbg) System.err.println("Return inrange threadlocal");
             return JNIThreadLocalHandles.get().getObject(handle);
         }
         if (JNIGlobalHandles.singleton().isInRange(handle)) {
+            if (dbg) System.err.println("Return inrange jni");
             return JNIGlobalHandles.singleton().get(handle);
         }
         throw new RuntimeException("Invalid object handle");
