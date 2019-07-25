@@ -128,6 +128,7 @@ class PosixJavaNetSubstitutionsFeature implements Feature {
             RuntimeReflection.register(access.findClassByName("java.net.InetAddressImpl"));
             RuntimeReflection.register(access.findClassByName("java.net.Inet4AddressImpl"));
             RuntimeReflection.register(access.findClassByName("java.net.Inet6AddressImpl"));
+            RuntimeReflection.register(access.findClassByName("[Ljava.net.InterfaceAddress;"));
             RuntimeReflection.registerForReflectiveInstantiation(access.findClassByName("java.net.Inet4AddressImpl"));
             RuntimeReflection.registerForReflectiveInstantiation(access.findClassByName("java.net.Inet6AddressImpl"));
 
