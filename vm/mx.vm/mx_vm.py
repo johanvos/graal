@@ -64,8 +64,9 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmJdkComponent(
     dir_name='installer',
     license_files=[],
     third_party_license_files=[],
+    jar_distributions=['vm:INSTALLER'],
     support_distributions=['vm:INSTALLER_GRAALVM_SUPPORT'],
-    provided_executables=['bin/gu'],
+    provided_executables=['bin/<cmd:gu>'],
 ))
 
 mx_sdk.register_graalvm_component(mx_sdk.GraalVmComponent(
@@ -2177,7 +2178,7 @@ else:
     register_vm_config('ce', ['cmp', 'gu', 'gvm', 'ins', 'js', 'lg', 'nfi', 'njs', 'polynative', 'pro', 'rgx', 'slg', 'svm', 'svml', 'tfl', 'libpoly', 'poly', 'vvm'])
     register_vm_config('ce', ['cmp', 'gu', 'gvm', 'ins', 'js', 'lg', 'nfi', 'ni', 'nil', 'njs', 'polynative', 'pro', 'pyn', 'pynl', 'rby', 'rbyl', 'rgx', 'slg', 'svm', 'svml', 'tfl', 'libpoly', 'poly', 'vvm'], 'ce-complete')
 register_vm_config('ce-python', ['cmp', 'gu', 'gvm', 'ins', 'js', 'lg', 'nfi', 'njs', 'polynative', 'pyn', 'pro', 'rgx', 'slg', 'svm', 'svml', 'tfl', 'libpoly', 'poly', 'vvm'])
-register_vm_config('ce-no_native', ['bjs', 'blli', 'bnative-image', 'bpolyglot', 'cmp', 'gu', 'gvm', 'ins', 'js', 'nfi', 'njs', 'polynative', 'pro', 'rgx', 'slg', 'svm', 'svml', 'tfl', 'poly', 'vvm'])
+register_vm_config('ce-no_native', ['bjs', 'blli', 'bnative-image', 'bnative-image-configure', 'bpolyglot', 'cmp', 'gu', 'gvm', 'ins', 'js', 'nfi', 'ni', 'nil', 'njs', 'polynative', 'pro', 'rgx', 'slg', 'snative-image-agent', 'svm', 'svml', 'tfl', 'libpoly', 'poly', 'vvm'])
 register_vm_config('libgraal', ['cmp', 'gu', 'gvm', 'lg', 'nfi', 'poly', 'polynative', 'rgx', 'svm', 'svml', 'tfl', 'bpolyglot'])
 
 if mx.get_os() == 'windows':
