@@ -85,11 +85,11 @@ public class CoreFoundation {
     public interface CFDictionaryRef extends PointerBase {
     }
 
-    @CFunction
-    public static native CFDictionaryRef _CFCopyServerVersionDictionary();
+    // @CFunction
+    // public static native CFDictionaryRef _CFCopyServerVersionDictionary();
 
-    @CFunction
-    public static native CFDictionaryRef _CFCopySystemVersionDictionary();
+    // @CFunction
+    // public static native CFDictionaryRef _CFCopySystemVersionDictionary();
 
     @CFunction
     public static native CFStringRef CFDictionaryGetValue(CFDictionaryRef theDict, CFStringRef key);

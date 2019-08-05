@@ -73,6 +73,8 @@ public class DarwinSystemPropertiesSupport extends PosixSystemPropertiesSupport 
         }
 
         /* On OSX Java returns the ProductVersion instead of kernel release info. */
+        return osVersionValue = "Unknown";
+/*
         CoreFoundation.CFDictionaryRef dict = CoreFoundation._CFCopyServerVersionDictionary();
         if (dict.isNull()) {
             dict = CoreFoundation._CFCopySystemVersionDictionary();
@@ -96,6 +98,7 @@ public class DarwinSystemPropertiesSupport extends PosixSystemPropertiesSupport 
             osVersionValue = "Unknown";
         }
         return osVersionValue;
+*/
     }
 }
 
