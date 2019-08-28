@@ -416,7 +416,7 @@ public abstract class NativeBootImage extends AbstractBootImage {
             final RelocatableBuffer heapSectionBuffer;
             final ProgbitsSectionImpl heapSectionImpl;
             if (SubstrateOptions.SpawnIsolates.getValue()) {
-                boolean writable = !SubstrateOptions.SpawnIsolates.getValue();
+                boolean writable = SubstrateOptions.UseOnlyWritableBootImageHeap.getValue() ? true : !SubstrateOptions.SpawnIsolates.getValue();
                 final long heapSize = heap.getReadOnlySectionSize() + heap.getWritableSectionSize();
 
                 heapSectionBuffer = RelocatableBuffer.factory("heap", heapSize, objectFile.getByteOrder());
