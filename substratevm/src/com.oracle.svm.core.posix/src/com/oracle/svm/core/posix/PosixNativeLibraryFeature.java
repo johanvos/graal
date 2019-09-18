@@ -39,6 +39,7 @@ import com.oracle.svm.core.jdk.JDKLibZipSubstitutions;
 import com.oracle.svm.core.jdk.Jvm;
 import com.oracle.svm.core.jdk.PlatformNativeLibrarySupport;
 import com.oracle.svm.core.posix.headers.Dlfcn;
+import com.oracle.svm.core.log.Log;
 
 @AutomaticFeature
 @Platforms({InternalPlatform.LINUX_AND_JNI.class, InternalPlatform.DARWIN_AND_JNI.class})
@@ -85,9 +86,10 @@ class PosixNativeLibrarySupport extends PlatformNativeLibrarySupport {
 
     @Override
     public PointerBase findBuiltinSymbol(String name) {
+	// Log.log().string("findbuiltinsymbol for ").string(name).newline();
         try (CCharPointerHolder symbol = CTypeConversion.toCString(name)) {
             return Dlfcn.dlsym(Dlfcn.RTLD_DEFAULT(), symbol.get());
-        }
+        } 
     }
 
     class PosixNativeLibrary implements NativeLibrary {
@@ -120,6 +122,7 @@ class PosixNativeLibrarySupport extends PlatformNativeLibrarySupport {
 
         @Override
         public boolean load() {
+		Log.log().string("TRYING TO LOAD POSIXNATIVELIB").newline();
             if (builtin) {
                 return true;
             }

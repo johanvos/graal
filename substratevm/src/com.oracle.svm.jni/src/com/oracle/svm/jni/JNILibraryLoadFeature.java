@@ -71,7 +71,9 @@ class JNILibraryInitializer implements LibraryInitializer {
             return true;
         }
         String onLoadName = getOnLoadName(libName, true);
+	System.err.println("[JNILIBINIT] asked for "+onLoadName);
         PointerBase onLoad = PlatformNativeLibrarySupport.singleton().findBuiltinSymbol(onLoadName);
+	System.err.println("[JNILIBINIT] asked for "+onLoadName+" and is nonnull? "+onLoad.isNonNull());
         return onLoad.isNonNull();
     }
 

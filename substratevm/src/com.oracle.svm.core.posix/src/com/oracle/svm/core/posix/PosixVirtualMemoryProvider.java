@@ -58,6 +58,7 @@ import com.oracle.svm.core.c.CGlobalData;
 import com.oracle.svm.core.c.CGlobalDataFactory;
 import com.oracle.svm.core.os.VirtualMemoryProvider;
 
+
 @AutomaticFeature
 @Platforms({InternalPlatform.LINUX_AND_JNI.class, InternalPlatform.DARWIN_AND_JNI.class})
 class PosixVirtualMemoryProviderFeature implements Feature {
@@ -78,6 +79,7 @@ public class PosixVirtualMemoryProvider implements VirtualMemoryProvider {
         Word value = CACHED_PAGE_SIZE.get().read();
         if (value.equal(WordFactory.zero())) {
             long queried = sysconf(_SC_PAGE_SIZE());
+	    queried = 8192;
             value = WordFactory.unsigned(queried);
             CACHED_PAGE_SIZE.get().write(value);
         }
