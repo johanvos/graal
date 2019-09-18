@@ -122,7 +122,9 @@ public final class NativeLibrarySupport {
     }
 
     private boolean loadLibrary0(File file, boolean asBuiltin) {
+	    // System.err.println("[GRAAL] NLS, loadlib0, asbuilting = "+asBuiltin);
         if (asBuiltin && (libraryInitializer == null || !libraryInitializer.isBuiltinLibrary(file.getName()))) {
+		// System.err.println("[GRAAL] NLS FALSE, libinit = "+libraryInitializer);
             return false;
         }
 
@@ -130,6 +132,8 @@ public final class NativeLibrarySupport {
         try {
             canonical = asBuiltin ? file.getName() : file.getCanonicalPath();
         } catch (IOException e) {
+		// System.err.println("[GRAAL] NLS FALSE2");
+	 e.printStackTrace();
             return false;
         }
 
@@ -150,6 +154,7 @@ public final class NativeLibrarySupport {
             currentLoadContext.push(lib);
             try {
                 if (!lib.load()) {
+		// System.err.println("[GRAAL] NLS FALSE3");
                     return false;
                 }
                 if (libraryInitializer != null) {
@@ -160,6 +165,7 @@ public final class NativeLibrarySupport {
                 assert top == lib;
             }
             loadedLibraries.add(lib);
+		// System.err.println("[GRAAL] NLS TRUE!!");
             return true;
         } finally {
             lock.unlock();

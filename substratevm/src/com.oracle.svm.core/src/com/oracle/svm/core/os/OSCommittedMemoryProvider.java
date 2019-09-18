@@ -96,11 +96,13 @@ public class OSCommittedMemoryProvider implements CommittedMemoryProvider {
      */
     @Override
     public Pointer allocate(UnsignedWord size, UnsignedWord alignment, boolean executable) {
+	Log.log().string("[GRAAL]allocate memory asked for ").unsigned(size).string(" and alignment = ").unsigned(alignment).newline();
         final int access = Access.READ | Access.WRITE | (executable ? Access.EXECUTE : 0);
 
         if (alignment.equal(UNALIGNED)) {
             Pointer start = VirtualMemoryProvider.get().commit(nullPointer(), size, access);
             if (start.isNonNull()) {
+		Log.log().string("Allocate, start non null").newline();
                 trackVirtualMemory(size);
             }
             return start;
@@ -113,13 +115,23 @@ public class OSCommittedMemoryProvider implements CommittedMemoryProvider {
 
         // All communication with mmap and munmap happen in terms of page_sized objects.
         final UnsignedWord pageSize = getGranularity();
+        // final UnsignedWord pageSize = WordFactory.unsigned(4096);
         // (1) Reserve a container that is large enough for the requested size *and* the alignment.
         // - The container occupies the open-right interval [containerStart .. containerEnd).
         // - This will be too big, but I'll give back the extra later.
         final UnsignedWord containerSize = alignment.add(size);
         final UnsignedWord pagedContainerSize = UnsignedUtils.roundUp(containerSize, pageSize);
+	/*
+Log.log().string("ALLOCATE aligned MEMORY with size ").unsigned(size)
+	        .string(" and containersize = ").hex(containerSize)
+	        .string(" and pagedconainersize = ").hex(pagedContainerSize)
+		.string(" and pagesize = ").hex(pageSize).newline();
+		*/
         final Pointer containerStart = VirtualMemoryProvider.get().commit(nullPointer(), pagedContainerSize, access);
+// Log.log().string("ALLOCATE MEMORY aligned 1").newline();
         if (containerStart.isNull()) {
+Log.log().string("ALLOCATE MEMORY aligned but no containerStart").newline();
+Log.log().string("tried to allocate(size: ").unsigned(size).string(" ").hex(size).string(", alignment: ").unsigned(alignment).string(" ").hex(alignment).string(")").newline();
             // No exception is needed: this is just a failure to reserve the virtual address space.
             return nullPointer();
         }
@@ -198,7 +210,8 @@ public class OSCommittedMemoryProvider implements CommittedMemoryProvider {
     }
 
     // Verbose debugging.
-    private static final boolean virtualMemoryVerboseDebugging = false;
+    private static final boolean virtualMemoryVerboseDebugging = true;
+    // private static final boolean virtualMemoryVerboseDebugging = false;
 
     private final VirtualMemoryTracker tracker = new VirtualMemoryTracker();
 
