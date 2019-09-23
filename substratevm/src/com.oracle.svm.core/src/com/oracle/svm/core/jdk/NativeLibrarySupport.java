@@ -88,14 +88,17 @@ public final class NativeLibrarySupport {
     }
 
     public void loadLibrary(String name, boolean isAbsolute) {
+	    System.err.println("[GRAALVM] loadLibrary called for "+name);
         if (isAbsolute) {
             if (loadLibrary0(new File(name), false)) {
+	    System.err.println("[GRAALVM] return from loadLibrary called for "+name);
                 return;
             }
             throw new UnsatisfiedLinkError("Can't load library: " + name);
         }
         // Test if this is a built-in library
         if (loadLibrary0(new File(name), true)) {
+	    System.err.println("[GRAALVM] return2 (builtin) from loadLibrary called for "+name);
             return;
         }
         String libname = System.mapLibraryName(name);
@@ -122,7 +125,7 @@ public final class NativeLibrarySupport {
     }
 
     private boolean loadLibrary0(File file, boolean asBuiltin) {
-	    // System.err.println("[GRAAL] NLS, loadlib0, asbuilting = "+asBuiltin);
+ System.err.println("[GRAAL] NLS, loadlib0 for "+file+", asbuilting = "+asBuiltin);
         if (asBuiltin && (libraryInitializer == null || !libraryInitializer.isBuiltinLibrary(file.getName()))) {
 		// System.err.println("[GRAAL] NLS FALSE, libinit = "+libraryInitializer);
             return false;
@@ -165,7 +168,7 @@ public final class NativeLibrarySupport {
                 assert top == lib;
             }
             loadedLibraries.add(lib);
-		// System.err.println("[GRAAL] NLS TRUE!!");
+	    System.err.println("[GRAAL] Loaded library "+lib);
             return true;
         } finally {
             lock.unlock();
@@ -173,9 +176,11 @@ public final class NativeLibrarySupport {
     }
 
     public PointerBase findSymbol(String name) {
+	    System.err.println("GRAALJNI needs to find symbol "+name+" and loadedlibs = "+loadedLibraries);
         lock.lock();
         try {
             for (NativeLibrary lib : loadedLibraries) {
+		System.err.println("GRAALJNI FINDSYMBOL named "+name);
                 PointerBase entry = lib.findSymbol(name);
                 if (entry.isNonNull()) {
                     return entry;
