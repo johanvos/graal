@@ -37,6 +37,7 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
+#include <stdlib.h>
 
 #include <jni.h>
 
@@ -223,6 +224,7 @@ JNIEXPORT int JVM_GetLastErrorString(char *buf, int len) {
 int jio_vfprintf(FILE* f, const char *fmt, va_list args) {
   return vfprintf(f, fmt, args);
 }
+int jio_vsnprintf(char *str, size_t count, const char *fmt, va_list args);
 
 #ifdef JNI_VERSION_9
 JNIEXPORT void JVM_AddModuleExports(JNIEnv *env, jobject from_module, const char* package, jobject to_module) {

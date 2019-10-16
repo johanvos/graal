@@ -321,7 +321,8 @@ public abstract class NativeBootImageViaCC extends NativeBootImage {
                 write(tempDirectory.resolve(imageName + ObjectFile.getFilenameSuffix()));
             }
             if (NativeImageOptions.ExitAfterRelocatableImageWrite.getValue()) {
-                return null;
+// DEPENDS on LLVM or not
+               // return null;
             }
             // 2. run a command to make an executable of it
             int status;
@@ -334,6 +335,10 @@ public abstract class NativeBootImageViaCC extends NativeBootImage {
                  */
 
                 LinkerInvocation inv = getLinkerInvocation(outputDirectory, tempDirectory, imageName);
+                if (NativeImageOptions.ExitAfterRelocatableImageWrite.getValue()) {
+// DEPENDS on LLVM or not
+                    // return null;
+                }
                 for (Function<LinkerInvocation, LinkerInvocation> fn : config.getLinkerInvocationTransformers()) {
                     inv = fn.apply(inv);
                 }
