@@ -176,13 +176,13 @@ public class Signal {
                 __u8 __reserved[4096] __attribute__((__aligned__(16)));
         };
         */
-        @CFieldAddress("uc_mcontext")
-        @Platforms({DeprecatedPlatform.LINUX_SUBSTITUTION_AARCH64.class, Platform.LINUX_AARCH64.class})
-        mcontext_t uc_mcontext();
-
-        @CField("uc_mcontext")
-        @Platforms({DeprecatedPlatform.DARWIN_SUBSTITUTION_AMD64.class, Platform.DARWIN_AMD64.class})
-        MContext64 uc_mcontext64();
+//        @CFieldAddress("uc_mcontext")
+//        @Platforms({DeprecatedPlatform.LINUX_SUBSTITUTION_AARCH64.class, Platform.LINUX_AARCH64.class})
+//        mcontext_t uc_mcontext();
+//
+//        @CField("uc_mcontext")
+//        @Platforms({DeprecatedPlatform.DARWIN_SUBSTITUTION_AMD64.class, Platform.DARWIN_AMD64.class})
+//        MContext64 uc_mcontext64();
 
     }
 
@@ -244,25 +244,25 @@ public class Signal {
         @CFieldOffset("__ss.__rflags")
         int efl_offset();
     }
-
-    @CStruct
-    @Platforms({DeprecatedPlatform.LINUX_SUBSTITUTION_AARCH64.class, Platform.LINUX_AARCH64.class})
-    public interface mcontext_t extends PointerBase {
-        @CField
-        long fault_address();
-
-        @CFieldAddress
-        GregsPointer regs();
-
-        @CField
-        long sp();
-
-        @CField
-        long pc();
-
-        @CField
-        long pstate();
-    }
+//
+//    @CStruct
+//    @Platforms({DeprecatedPlatform.LINUX_SUBSTITUTION_AARCH64.class, Platform.LINUX_AARCH64.class})
+//    public interface mcontext_t extends PointerBase {
+//        @CField
+//        long fault_address();
+//
+//        @CFieldAddress
+//        GregsPointer regs();
+//
+//        @CField
+//        long sp();
+//
+//        @CField
+//        long pc();
+//
+//        @CField
+//        long pstate();
+//    }
 
     public interface AdvancedSignalDispatcher extends CFunctionPointer {
 

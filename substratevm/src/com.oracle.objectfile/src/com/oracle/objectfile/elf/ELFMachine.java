@@ -189,6 +189,17 @@ public enum ELFMachine/* implements Integral */ {
         }
     }
 
+    public static ELFMachine from(String m) {
+        String lcm = m.toLowerCase();
+        if (lcm.equals("arm64") || lcm.equals("aarch64")) {
+            return AArch64;
+        }
+        if (lcm.equals("amd64") || lcm.equals("x86_64")) {
+            return X86_64;
+        }
+        throw new IllegalStateException("unknown ELF machine type");
+    }
+
     public short toShort() {
         if (this == NONE) {
             return (short) 0;

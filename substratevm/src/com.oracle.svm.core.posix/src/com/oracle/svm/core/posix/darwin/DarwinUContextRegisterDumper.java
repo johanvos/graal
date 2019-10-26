@@ -52,6 +52,7 @@ class DarwinUContextRegisterDumperFeature implements Feature {
 class DarwinUContextRegisterDumper implements UContextRegisterDumper {
     @Override
     public void dumpRegisters(Log log, ucontext_t uContext) {
+/*
         Signal.MContext64 sigcontext = uContext.uc_mcontext64();
 
         log.indent(true);
@@ -82,6 +83,7 @@ class DarwinUContextRegisterDumper implements UContextRegisterDumper {
         log.indent(false);
 
         SubstrateUtil.printDiagnostics(log, WordFactory.pointer(spValue), WordFactory.pointer(ipValue));
+*/
     }
 
     private static long readRegisterAt(Signal.MContext64 sigcontext, int i) {

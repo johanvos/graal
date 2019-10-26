@@ -104,6 +104,7 @@ public class PosixDirectives implements CContext.Directives {
 
     @Override
     public boolean isInConfiguration() {
+//        return false;
         return Platform.includedIn(InternalPlatform.LINUX_JNI_AND_SUBSTITUTIONS.class) || Platform.includedIn(InternalPlatform.DARWIN_JNI_AND_SUBSTITUTIONS.class);
     }
 

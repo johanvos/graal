@@ -82,18 +82,24 @@ public class ELFObjectFile extends ObjectFile {
         shstrtab = new SectionHeaderStrtab();
         // 3. create section header table
         sht = new SectionHeaderTable(/* shstrtab */);
+Thread.dumpStack();
     }
 
     public ELFObjectFile(ELFMachine machine) {
         this(machine, false);
+System.err.println("created1 ELF for "+machine);
     }
 
     public ELFObjectFile() {
-        this(ELFMachine.getSystemNativeValue());
+        this(ELFMachine.from(System.getProperty("svm.targetArch") == null ? System.getProperty("os.arch") : System.getProperty("svm.targetArch")));
+System.err.println("created0 ELF");
+        // this(ELFMachine.getSystemNativeValue());
     }
 
     public ELFObjectFile(boolean runtimeDebugInfoGeneration) {
-        this(ELFMachine.getSystemNativeValue(), runtimeDebugInfoGeneration);
+        this(ELFMachine.from(System.getProperty("svm.targetArch") == null ? System.getProperty("os.arch") : System.getProperty("svm.targetArch")), runtimeDebugInfoGeneration);
+        // this(ELFMachine.getSystemNativeValue(), runtimeDebugInfoGeneration);
+System.err.println("created2 ELF");
     }
 
     @Override
