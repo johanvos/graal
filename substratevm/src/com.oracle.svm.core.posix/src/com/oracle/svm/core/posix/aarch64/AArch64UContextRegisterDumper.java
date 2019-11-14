@@ -32,6 +32,7 @@ import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.word.PointerBase;
 import org.graalvm.word.WordFactory;
 
+import com.oracle.svm.core.SubstrateOptions;
 import com.oracle.svm.core.SubstrateUtil;
 import com.oracle.svm.core.annotate.AutomaticFeature;
 import com.oracle.svm.core.annotate.Uninterruptible;
@@ -50,7 +51,27 @@ import jdk.vm.ci.aarch64.AArch64;
 class AArch64UContextRegisterDumperFeature implements Feature {
     @Override
     public void afterRegistration(AfterRegistrationAccess access) {
-        ImageSingletons.add(UContextRegisterDumper.class, new AArch64UContextRegisterDumper());
+        // ImageSingletons.add(UContextRegisterDumper.class, new AArch64UContextRegisterDumper());
+        UContextRegisterDumper regdumper;
+        if (SubstrateOptions.CompilerBackend.getValue().equals("llvm")) {
+            regdumper = new UContextRegisterDumper() {
+                public void dumpRegisters(Log log, ucontext_t uContext) {
+                    log.newline().string("No support for UContextRegisterDumper with CompilerBackend llvm").newline();
+                }
+
+                public PointerBase getHeapBase(ucontext_t uContext) {
+                    return null;
+                }
+
+                public PointerBase getThreadPointer(ucontext_t uContext) {
+                    return null;
+                }
+            };
+
+        } else {
+            regdumper = new AArch64UContextRegisterDumper();
+        }
+        ImageSingletons.add(UContextRegisterDumper.class, regdumper);
     }
 }
 
@@ -58,13 +79,14 @@ class AArch64UContextRegisterDumper implements UContextRegisterDumper {
     @Override
     public void dumpRegisters(Log log, ucontext_t uContext) {
         mcontext_t sigcontext = uContext.uc_mcontext();
-        GregsPointer regs = sigcontext.regs();
-        long spValue = sigcontext.sp();
-        long pcValue = sigcontext.pc();
+        // GregsPointer regs = sigcontext.regs();
+        // long spValue = sigcontext.sp();
+        // long pcValue = sigcontext.pc();
 
         log.newline().string("General Purpose Register Set Values: ").newline();
 
         log.indent(true);
+/*
         log.string("R0 ").zhex(regs.read(0)).newline();
         log.string("R1 ").zhex(regs.read(1)).newline();
         log.string("R2 ").zhex(regs.read(2)).newline();
@@ -97,19 +119,21 @@ class AArch64UContextRegisterDumper implements UContextRegisterDumper {
         log.string("R29 ").zhex(regs.read(29)).newline();
         log.string("R30 ").zhex(regs.read(30)).newline();
         log.string("R31 ").zhex(regs.read(31)).newline();
-        log.string("SP ").zhex(spValue).newline();
-        log.string("PC ").zhex(pcValue).newline();
+        // log.string("SP ").zhex(spValue).newline();
+        // log.string("PC ").zhex(pcValue).newline();
+*/
         log.indent(false);
 
-        SubstrateUtil.printDiagnostics(log, WordFactory.pointer(spValue), WordFactory.pointer(pcValue));
+        // SubstrateUtil.printDiagnostics(log, WordFactory.pointer(spValue), WordFactory.pointer(pcValue));
     }
 
     @Override
     @Uninterruptible(reason = "Called from uninterruptible code", mayBeInlined = true)
     public PointerBase getHeapBase(ucontext_t uContext) {
-        mcontext_t sigcontext = uContext.uc_mcontext();
-        GregsPointer regs = sigcontext.regs();
-        return WordFactory.pointer(regs.read(getHeapBaseRegisterNumber()));
+return null;
+        // mcontext_t sigcontext = uContext.uc_mcontext();
+        // GregsPointer regs = sigcontext.regs();
+        // return WordFactory.pointer(regs.read(getHeapBaseRegisterNumber()));
     }
 
     @Fold
@@ -121,9 +145,10 @@ class AArch64UContextRegisterDumper implements UContextRegisterDumper {
     @Override
     @Uninterruptible(reason = "Called from uninterruptible code", mayBeInlined = true)
     public PointerBase getThreadPointer(ucontext_t uContext) {
-        mcontext_t sigcontext = uContext.uc_mcontext();
-        GregsPointer regs = sigcontext.regs();
-        return WordFactory.pointer(regs.read(getThreadPointerRegisterNumber()));
+return null;
+        // mcontext_t sigcontext = uContext.uc_mcontext();
+        // GregsPointer regs = sigcontext.regs();
+        // return WordFactory.pointer(regs.read(getThreadPointerRegisterNumber()));
     }
 
     @Fold

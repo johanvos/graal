@@ -166,12 +166,12 @@ public class Signal {
         } ucontext_t;
         typedef struct sigcontext mcontext_t;
         struct sigcontext {
-                __u64 fault_address;
+                // __u64 fault_address;
                 // AArch64 registers
-                __u64 regs[31];
-                __u64 sp;
-                __u64 pc;
-                __u64 pstate;
+                // __u64 regs[31];
+                // __u64 sp;
+                // __u64 pc;
+                // __u64 pstate;
                 // 4K reserved for FP/SIMD state and future expansion
                 __u8 __reserved[4096] __attribute__((__aligned__(16)));
         };
@@ -248,20 +248,20 @@ public class Signal {
     @CStruct
     @Platforms({DeprecatedPlatform.LINUX_SUBSTITUTION_AARCH64.class, Platform.LINUX_AARCH64.class})
     public interface mcontext_t extends PointerBase {
-        @CField
-        long fault_address();
+        // @CField
+        // long fault_address();
 
-        @CFieldAddress
-        GregsPointer regs();
+        // @CFieldAddress
+        // GregsPointer regs();
 
-        @CField
-        long sp();
+        // @CField
+        // long sp();
 
-        @CField
-        long pc();
+        // @CField
+        // long pc();
 
-        @CField
-        long pstate();
+        // @CField
+        // long pstate();
     }
 
     public interface AdvancedSignalDispatcher extends CFunctionPointer {
