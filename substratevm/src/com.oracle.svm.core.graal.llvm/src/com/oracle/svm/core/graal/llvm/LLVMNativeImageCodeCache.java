@@ -441,6 +441,7 @@ public class LLVMNativeImageCodeCache extends NativeImageCodeCache {
             stackMapDump.write("\nPatchpoints\n===========\n");
         }
 
+System.err.println("NUMBATCHES = "+numBatches);
         IntStream.range(0, numBatches).parallel().forEach(batchId -> {
             llvmOptimize(debug, getBatchOptimizedFilename(batchId), getBatchBitcodeFilename(batchId));
             llvmCompile(debug, getBatchCompiledFilename(batchId), getBatchOptimizedFilename(batchId));
@@ -524,6 +525,7 @@ public class LLVMNativeImageCodeCache extends NativeImageCodeCache {
             int status = p.waitFor();
             if (status != 0) {
                 debug.log("%s", output.toString());
+System.err.println("output = "+output);
                 throw new GraalError("LLVM compilation failed for " + getFunctionName(inputPath) + ": " + status);
             }
         } catch (IOException | InterruptedException e) {

@@ -130,6 +130,7 @@ public class OSCommittedMemoryProvider implements CommittedMemoryProvider {
         final Pointer start = PointerUtils.roundUp(containerStart, alignment);
         final Pointer end = start.add(size);
         if (virtualMemoryVerboseDebugging) {
+            Log.log().string("Pagesize: ").unsigned(pageSize).newline();
             Log.log().string("allocate(size: ").unsigned(size).string(" ").hex(size).string(", alignment: ").unsigned(alignment).string(" ").hex(alignment).string(")").newline();
             Log.log().string("  container:   [").hex(containerStart).string(" .. ").hex(containerEnd).string(")").newline();
             Log.log().string("  result:      [").hex(start).string(" .. ").hex(end).string(")").newline();
@@ -198,7 +199,7 @@ public class OSCommittedMemoryProvider implements CommittedMemoryProvider {
     }
 
     // Verbose debugging.
-    private static final boolean virtualMemoryVerboseDebugging = false;
+    private static final boolean virtualMemoryVerboseDebugging = true;
 
     private final VirtualMemoryTracker tracker = new VirtualMemoryTracker();
 
