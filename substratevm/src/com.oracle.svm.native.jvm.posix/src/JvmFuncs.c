@@ -37,6 +37,7 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
+#include <stdlib.h>
 
 #include <jni.h>
 
@@ -275,15 +276,6 @@ JNIEXPORT void JVM_DefineModule(JNIEnv *env, jobject module, jboolean is_open, j
                  jstring location, const char* const* packages, jsize num_packages) {
     fprintf(stderr, "JVM_DefineModule called\n");
 }
-
-int jio_snprintf(char *str, size_t count, const char *fmt, ...) {
-  va_list args;
-  int len;
-  va_start(args, fmt);
-  len = jio_vsnprintf(str, count, fmt, args);
-  va_end(args);
-  return len;
-}
 #endif
 
 int jio_vsnprintf(char *str, size_t count, const char *fmt, va_list args) {
@@ -300,3 +292,11 @@ int jio_vsnprintf(char *str, size_t count, const char *fmt, va_list args) {
   return result;
 }
 
+int jio_snprintf(char *str, size_t count, const char *fmt, ...) {
+  va_list args;
+  int len;
+  va_start(args, fmt);
+  len = jio_vsnprintf(str, count, fmt, args);
+  va_end(args);
+  return len;
+}
