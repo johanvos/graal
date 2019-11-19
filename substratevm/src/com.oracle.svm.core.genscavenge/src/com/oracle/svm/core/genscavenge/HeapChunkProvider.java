@@ -92,8 +92,7 @@ class HeapChunkProvider {
 
     @AlwaysInline("Remove all logging when noopLog is returned by this method")
     private static Log log() {
-        return Log.log();
-        // return Log.noopLog();
+        return Log.noopLog();
     }
 
     /** An OutOFMemoryError for being unable to allocate memory for an aligned heap chunk. */

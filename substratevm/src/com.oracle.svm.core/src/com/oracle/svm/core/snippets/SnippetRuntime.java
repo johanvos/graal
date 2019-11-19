@@ -274,8 +274,6 @@ public class SnippetRuntime {
          * exceptions are thrown. This is reverted before execution continues in the exception
          * handler (see ExceptionStackFrameVisitor.visitFrame).
          */
-Log.log().string("UNWINDEXCEPTION: ").string(exception.getClass().getName()).newline();
-Log.log().string("UNWINDEXCEPTIONmsg: ").string(exception.getMessage()).newline();
         StackOverflowCheck.singleton().makeYellowZoneAvailable();
         ThreadingSupportImpl.pauseRecurringCallback("Arbitrary code must not be executed while unwinding.");
 
@@ -286,7 +284,7 @@ Log.log().string("UNWINDEXCEPTIONmsg: ").string(exception.getMessage()).newline(
              * handler.
              */
             Log.log().string("Fatal error: recursion in exception handling: ").string(exception.getClass().getName());
-            Log.log().string(" thrown WHILE unwinding ").string(currentException.get().getClass().getName()).newline();
+            Log.log().string(" thrown while unwinding ").string(currentException.get().getClass().getName()).newline();
             ImageSingletons.lookup(LogHandler.class).fatalError();
             return;
         }
