@@ -24,6 +24,8 @@
  */
 package com.oracle.svm.core.posix.thread;
 
+import com.oracle.svm.core.thread.VMThreads;
+
 import org.graalvm.compiler.core.common.SuppressFBWarnings;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.ObjectHandle;
@@ -236,6 +238,7 @@ class PosixParkEvent extends ParkEvent {
 
     @Override
     protected WaitResult condWait() {
+ VMError.guarantee(VMThreads.StatusSupport.isStatusJava());
         WaitResult result = WaitResult.UNPARKED;
         /* Lock the mutex in preparation for waiting. */
         PosixUtils.checkStatusIs0(Pthread.pthread_mutex_lock(mutex), "park(): mutex lock");

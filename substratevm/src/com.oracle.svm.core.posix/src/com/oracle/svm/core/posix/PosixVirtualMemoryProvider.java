@@ -74,6 +74,7 @@ public class PosixVirtualMemoryProvider implements VirtualMemoryProvider {
         Word value = CACHED_PAGE_SIZE.get().read();
         if (value.equal(WordFactory.zero())) {
             long queried = Unistd.NoTransitions.sysconf(Unistd._SC_PAGE_SIZE());
+            // if (queried < 1) queried = 4096;
             value = WordFactory.unsigned(queried);
             CACHED_PAGE_SIZE.get().write(value);
         }

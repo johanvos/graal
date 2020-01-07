@@ -24,6 +24,8 @@
  */
 
 /* JVM_ functions imported from the hotspot sources */
+#include <android/log.h>
+
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -216,7 +218,13 @@ JNIEXPORT jobject JNICALL Java_sun_nio_ch_sctp_SctpChannelImpl_initIDs(JNIEnv *e
     return NULL;
 }
 
+#define  LOG_TAG "GraalVMGluon"
+
 int jio_vfprintf(FILE* f, const char *fmt, va_list args) {
+// __android_log_write(ANDROID_LOG_DEBUG, tag, buf);
+ // __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+ __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, fmt, args);
+
   return vfprintf(f, fmt, args);
 }
 
@@ -224,6 +232,7 @@ int jio_vsnprintf(char *str, size_t count, const char *fmt, va_list args) {
   int result;
 
   if ((intptr_t)count <= 0) return -1;
+ __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, fmt, args);
 
   result = vsnprintf(str, count, fmt, args);
   if ((result > 0 && (size_t)result >= count) || result == -1) {
@@ -234,7 +243,6 @@ int jio_vsnprintf(char *str, size_t count, const char *fmt, va_list args) {
   return result;
 }
 
-#ifdef JNI_VERSION_9
 int jio_snprintf(char *str, size_t count, const char *fmt, ...) {
   va_list args;
   int len;
@@ -243,4 +251,4 @@ int jio_snprintf(char *str, size_t count, const char *fmt, ...) {
   va_end(args);
   return len;
 }
-#endif
+

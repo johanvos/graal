@@ -110,6 +110,7 @@ public final class CAnnotationProcessorCache {
 
     public void get(NativeLibraries nativeLibs, NativeCodeInfo nativeCodeInfo) {
         File file = new File(cache, toPath(nativeCodeInfo));
+System.err.println("[JVDBG] CAnnotationProcessoCache, get from file "+file);
         try (FileInputStream fis = new FileInputStream(file)) {
             QueryResultParser.parse(nativeLibs, nativeCodeInfo, fis);
         } catch (IOException e) {

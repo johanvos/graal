@@ -462,7 +462,7 @@ public class LLVMNativeImageCodeCache extends NativeImageCodeCache {
     private void llvmOptimize(DebugContext debug, String outputPath, String inputPath) {
         try {
             List<String> cmd = new ArrayList<>();
-            cmd.add("opt");
+            cmd.add("opt-9");
 
             if (LLVMOptions.BitcodeOptimizations.getValue()) {
                 cmd.add("-disable-inlining");
@@ -532,7 +532,7 @@ public class LLVMNativeImageCodeCache extends NativeImageCodeCache {
     private void llvmLink(DebugContext debug, String outputPath, List<String> inputPaths) {
         try {
             List<String> cmd = new ArrayList<>();
-            cmd.add("llvm-link");
+            cmd.add("llvm-link-9");
             cmd.add("-v");
             cmd.add("-o");
             cmd.add(outputPath);
@@ -549,7 +549,8 @@ public class LLVMNativeImageCodeCache extends NativeImageCodeCache {
             int status = p.waitFor();
             if (status != 0) {
                 debug.log("%s", output.toString());
-                throw new GraalError("LLVM linking failed into " + getFunctionName(outputPath) + ": " + status);
+                throw new GraalError("LLVM linking failed into " + getFunctionName(outputPath) + ": " + status +
+                       "command was: "+ String.join(" ", cmd));
             }
         } catch (IOException | InterruptedException e) {
             throw new GraalError(e);

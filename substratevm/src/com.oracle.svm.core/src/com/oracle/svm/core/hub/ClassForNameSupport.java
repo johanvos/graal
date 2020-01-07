@@ -57,6 +57,7 @@ public final class ClassForNameSupport {
     public static Class<?> forName(String className, boolean initialize) throws ClassNotFoundException {
         Class<?> result = forNameOrNull(className, initialize);
         if (result == null) {
+System.err.println("FORNAME = NULL, list = "+ImageSingletons.lookup(ClassForNameSupport.class).knownClasses);
             throw new ClassNotFoundException(className);
         }
         return result;

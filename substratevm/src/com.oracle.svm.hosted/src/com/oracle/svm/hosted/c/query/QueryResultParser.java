@@ -74,6 +74,7 @@ public final class QueryResultParser extends NativeInfoTreeVisitor {
             assert keyValuePair.length == 2;
             parser.idToResult.put(keyValuePair[0], keyValuePair[1]);
         }
+// System.err.println("Parsing created map: "+parser.idToResult);
 
         nativeCodeInfo.accept(parser);
         return lines;
