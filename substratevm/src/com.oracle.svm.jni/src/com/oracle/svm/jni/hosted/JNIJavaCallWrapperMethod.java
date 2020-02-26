@@ -325,8 +325,10 @@ public final class JNIJavaCallWrapperMethod extends JNIGeneratedMethod {
         int count = invokeSignature.getParameterCount(false);
         // Windows CallVariant.VA_LIST is identical to CallVariant.ARRAY
         // iOS CallVariant.VARARGS stores values as an array on the stack
-        if ((OS.getCurrent() == OS.DARWIN && Platform.includedIn(Platform.AARCH64.class) && callVariant == CallVariant.VARARGS) ||
-                        (OS.getCurrent() == OS.WINDOWS && callVariant == CallVariant.VA_LIST) || callVariant == CallVariant.ARRAY) {
+        if ((OS.getCurrent() == OS.DARWIN && Platform.includedIn(Platform.AARCH64.class) && (callVariant == CallVariant.VARARGS || 
+                callVariant == CallVariant.VA_LIST)) {
+        //if ((OS.getCurrent() == OS.DARWIN && Platform.includedIn(Platform.AARCH64.class) && callVariant == CallVariant.VARARGS) ||
+                        //(OS.getCurrent() == OS.WINDOWS && callVariant == CallVariant.VA_LIST) || callVariant == CallVariant.ARRAY) {
             ResolvedJavaType elementType = metaAccess.lookupJavaType(JNIValue.class);
             int elementSize = SizeOf.get(JNIValue.class);
             ValueNode array;
