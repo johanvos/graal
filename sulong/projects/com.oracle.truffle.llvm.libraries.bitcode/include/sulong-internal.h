@@ -28,17 +28,18 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
+#ifndef SULONG_INTERNAL_H
+#define SULONG_INTERNAL_H
 
-/* The noinline attribute causes clang to not realize that calling this function with NULL
- * would result in undefined behavior and replacing the call to it in main() with an
- * "unreachable" instruction.
+/**
+ * Internal header. Do not distribute.
  */
-__attribute__((noinline)) void call_and_print(const char *(*fun)()) {
-  printf("%s\n", fun());
-}
 
-int main() {
-  call_and_print(NULL);
-  return 0;
-}
+/**
+ * Generates a symbol name that will be replace with `symname` from library `libname`.
+ *
+ * @see com.oracle.truffle.llvm.Runner.resolveRenamedSymbols
+ */
+#define _SULONG_IMPORT_SYMBOL(libname, symname) ___sulong_import_##libname##_##symname
+
+#endif

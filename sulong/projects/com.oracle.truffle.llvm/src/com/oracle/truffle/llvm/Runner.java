@@ -551,6 +551,7 @@ final class Runner {
             LLVMIntrinsicProvider intrinsicProvider = LLVMLanguage.getLanguage().getCapability(LLVMIntrinsicProvider.class);
             for (FunctionSymbol global : res.getDefinedFunctions()) {
                 LLVMFunction function = fileScope.getFunction(global.getName());
+                assert function != null;
                 if (isSulongLibrary && intrinsicProvider.isIntrinsified(function.getName())) {
                     allocFunctionsList.add(new AllocIntrinsicFunctionNode(function, nodeFactory));
                 } else if (lazyParsing) {
@@ -603,6 +604,10 @@ final class Runner {
             for (int i = 0; i < allocGlobals.length; i++) {
                 AllocGlobalNode allocGlobal = allocGlobals[i];
                 LLVMGlobal descriptor = fileScope.getGlobalVariable(allocGlobal.name);
+                if (descriptor == null) {
+                    CompilerDirectives.transferToInterpreter();
+                    throw new IllegalStateException(String.format("Global variable %s not found", allocGlobal.name));
+                }
                 if (!checkGlobals.execute(descriptor)) {
                     // because of our symbol overriding support, it can happen that the global was
                     // already bound before to a different target location
@@ -755,6 +760,12 @@ final class Runner {
         return loader.getCachedSulongLibraries();
     }
 
+    /**
+     * Marker for renamed symbols. Keep in sync with `sulong-internal.h`.
+     */
+    private static final String SULONG_RENAME_MARKER = "___sulong_import_";
+    public static final int SULONG_RENAME_MARKER_LEN = SULONG_RENAME_MARKER.length();
+
     private static void resolveRenamedSymbols(LLVMParserResult[] sulongLibraryResults) {
         EconomicMap<String, LLVMScope> scopes = EconomicMap.create();
 
@@ -768,23 +779,27 @@ final class Runner {
                 FunctionSymbol external = it.next();
                 String name = external.getName();
                 /*
-                 * An unresolved name has the form "__libName_symbolName". Check whether we have a
-                 * symbol named "symbolName" in the library "libName". If it exists, introduce an
-                 * alias. This can be used to explicitly call symbols from a certain standard
-                 * library, in case the symbol is hidden (either using the "hidden" attribute, or
-                 * because it is overridden).
+                 * An unresolved name has the form defined by the {@code
+                 * _SULONG_IMPORT_SYMBOL(libName, symbolName)} macro defined in the {@code
+                 * sulong-internal.h} header file. Check whether we have a symbol named "symbolName"
+                 * in the library "libName". If it exists, introduce an alias. This can be used to
+                 * explicitly call symbols from a certain standard library, in case the symbol is
+                 * hidden (either using the "hidden" attribute, or because it is overridden).
                  */
-                if (name.startsWith("__")) {
-                    int idx = name.indexOf('_', 2);
+                if (name.startsWith(SULONG_RENAME_MARKER)) {
+                    int idx = name.indexOf('_', SULONG_RENAME_MARKER_LEN);
                     if (idx > 0) {
-                        String lib = name.substring(2, idx);
+                        String lib = name.substring(SULONG_RENAME_MARKER_LEN, idx);
                         LLVMScope scope = scopes.get(lib);
                         if (scope != null) {
                             String originalName = name.substring(idx + 1);
                             LLVMFunction originalSymbol = scope.getFunction(originalName);
+                            assert originalSymbol != null;
                             LLVMAlias alias = new LLVMAlias(parserResult.getRuntime().getLibrary(), name, originalSymbol);
                             parserResult.getRuntime().getFileScope().register(alias);
                             it.remove();
+                        } else {
+                            throw new LLVMLinkerException(String.format("The %s could not be imported because library %s was not found.", external.getName(), lib));
                         }
                     }
                 }
@@ -891,7 +906,7 @@ final class Runner {
      * {@link LLVMParserResult} is also added to the {@link ParseContext#parserResultsAdd parser
      * results}. The {@code lib} parameter is add to the {@link LLVMContext#addExternalLibrary
      * context}.
-     * 
+     *
      * @param lib the library to be parsed
      * @param parseContext
      * @return the parser result corresponding to {@code lib}
@@ -939,7 +954,7 @@ final class Runner {
      * {@link LLVMParserResult} is also added to the {@link ParseContext#parserResultsAdd parser
      * results}. This method adds {@code library} parameter to the
      * {@link LLVMContext#addExternalLibrary context}.
-     * 
+     *
      * @param source the {@link Source} of the library to be parsed
      * @param library the {@link ExternalLibrary} corresponding to the library to be parsed
      * @param bytes the bytes of the library to be parsed
@@ -1258,6 +1273,7 @@ final class Runner {
                  * the file scope because we are initializing the globals of the current file.
                  */
                 LLVMGlobal globalDescriptor = runtime.getFileScope().getGlobalVariable(global.getName());
+                assert globalDescriptor != null;
                 final LLVMExpressionNode globalVarAddress = runtime.getNodeFactory().createLiteral(globalDescriptor, new PointerType(global.getType()));
                 if (size != 0) {
                     if (type instanceof ArrayType || type instanceof StructureType) {

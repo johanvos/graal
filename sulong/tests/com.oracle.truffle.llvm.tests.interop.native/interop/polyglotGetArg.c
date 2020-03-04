@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2017, 2020, Oracle and/or its affiliates.
  *
  * All rights reserved.
  *
@@ -27,18 +27,14 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <polyglot.h>
 
-#include <stdio.h>
+void *global;
 
-/* The noinline attribute causes clang to not realize that calling this function with NULL
- * would result in undefined behavior and replacing the call to it in main() with an
- * "unreachable" instruction.
- */
-__attribute__((noinline)) void call_and_print(const char *(*fun)()) {
-  printf("%s\n", fun());
+__attribute__((noinline)) int argTest(int a, int b, int c, int d) {
+  return polyglot_as_i32(polyglot_get_arg(2)) + c;
 }
 
 int main() {
-  call_and_print(NULL);
-  return 0;
+  return argTest(1, 2, 21, 4);
 }

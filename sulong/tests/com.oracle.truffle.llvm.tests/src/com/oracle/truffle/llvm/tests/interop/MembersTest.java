@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2020, Oracle and/or its affiliates.
  *
  * All rights reserved.
  *
@@ -27,18 +27,33 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package com.oracle.truffle.llvm.tests.interop;
 
-#include <stdio.h>
+import org.graalvm.polyglot.Value;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-/* The noinline attribute causes clang to not realize that calling this function with NULL
- * would result in undefined behavior and replacing the call to it in main() with an
- * "unreachable" instruction.
- */
-__attribute__((noinline)) void call_and_print(const char *(*fun)()) {
-  printf("%s\n", fun());
-}
+import com.oracle.truffle.tck.TruffleRunner;
 
-int main() {
-  call_and_print(NULL);
-  return 0;
+@RunWith(TruffleRunner.class)
+public class MembersTest extends InteropTestBase {
+
+    private static Value testLibrary;
+
+    @BeforeClass
+    public static void loadTestBitcode() {
+        testLibrary = InteropTestBase.loadTestBitcodeValue("stringTest");
+    }
+
+    @Test
+    public void testMemberExists() {
+        Assert.assertTrue(testLibrary.hasMember("test_as_string_utf8"));
+    }
+
+    @Test
+    public void testMemberDoesNotExist() {
+        Assert.assertFalse(testLibrary.hasMember("abc"));
+    }
 }
