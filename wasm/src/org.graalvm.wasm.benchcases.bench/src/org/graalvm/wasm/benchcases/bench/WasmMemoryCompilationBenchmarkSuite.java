@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,38 +38,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.nativeimage.impl;
+package org.graalvm.wasm.benchcases.bench;
 
-import java.nio.file.Path;
+import org.graalvm.wasm.benchmark.WasmCompilationBenchmarkSuiteBase;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
 
-import org.graalvm.nativeimage.c.function.CEntryPointLiteral;
+import java.io.IOException;
 
-public interface ProcessPropertiesSupport {
-    String getExecutableName();
+public class WasmMemoryCompilationBenchmarkSuite extends WasmCompilationBenchmarkSuiteBase {
+    @State(Scope.Benchmark)
+    public static class CBenchmarkState extends WasmCompilationBenchmarkState {
+        @Override
+        protected String benchmarkResource() {
+            return "wasm/memory";
+        }
+    }
 
-    long getProcessID();
-
-    long getProcessID(Process process);
-
-    String getObjectFile(String symbol);
-
-    String getObjectFile(CEntryPointLiteral<?> symbol);
-
-    String setLocale(String category, String locale);
-
-    boolean destroy(long processID);
-
-    boolean destroyForcibly(long processID);
-
-    boolean isAlive(long processID);
-
-    int waitForProcessExit(long processID);
-
-    void exec(Path executable, String[] args);
-
-    int getArgumentVectorBlockSize();
-
-    String getArgumentVectorProgramName();
-
-    boolean setArgumentVectorProgramName(String name);
+    @Benchmark
+    public void run(CBenchmarkState state) throws IOException, InterruptedException {
+        state.run();
+    }
 }
