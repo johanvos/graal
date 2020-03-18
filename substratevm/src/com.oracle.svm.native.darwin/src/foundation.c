@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2019, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation. Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
  * by Oracle in the LICENSE file that accompanied this code.
  *
@@ -22,19 +22,9 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package com.oracle.svm.core.annotate;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+#include <Foundation/Foundation.h>
 
-/**
- * Used to force reads of register values to be implemented using a {@code ReadRegisterFixedNode}
- * instead of a {@code ReadRegisterFloatingNode} to prevent instances where a register read would be
- * hoisted above the point where the register is written to.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface ForceFixedRegisterReads {
+void operatingSystemVersion(NSOperatingSystemVersion* osv) {
+    *osv = [[NSProcessInfo processInfo] operatingSystemVersion];
 }

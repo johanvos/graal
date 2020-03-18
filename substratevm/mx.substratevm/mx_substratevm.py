@@ -1121,9 +1121,6 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmJreComponent(
     polyglot_lib_jar_dependencies=[
         "substratevm:POLYGLOT_NATIVE_API",
     ],
-    polyglot_lib_build_dependencies=[
-        "substratevm:POLYGLOT_NATIVE_API_HEADERS"
-    ],
     has_polyglot_lib_entrypoints=True,
 ))
 
@@ -1217,7 +1214,7 @@ if is_musl_building_supported:
         license_files=[],
         third_party_license_files=[],
         dependencies=['svm'],
-        support_distributions=['substratevm:JDK11_NATIVE_IMAGE_MUSL_SUPPORT'],
+        support_distributions=['substratevm:JDK11_NATIVE_IMAGE_MUSL_SUPPORT_CE'],
         priority=5
     ))
 
