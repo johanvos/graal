@@ -221,7 +221,7 @@ class LLVMAArch64TargetSpecificFeature implements Feature {
 
             @Override
             public List<String> getLLCAdditionalOptions() {
-                return Collections.singletonList("--frame-pointer=all");
+                return java.util.Arrays.asList("--frame-pointer=all", "-mtriple=arm64-ios");
             }
 
             @Override
