@@ -76,6 +76,8 @@ public abstract class PlatformNativeLibrarySupport {
                     "sun_reflect",
                     "sun_text",
                     "sun_util",
+                    "com_sun_glass",
+                    "com_sun_prism",
 
                     /* SVM Specific packages */
                     "com_oracle_svm_core_jdk"
