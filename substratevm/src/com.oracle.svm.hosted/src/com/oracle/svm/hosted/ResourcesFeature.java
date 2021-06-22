@@ -261,8 +261,16 @@ public final class ResourcesFeature implements Feature {
             String relativeFilePath = "";
             if (file != root) {
                 relativeFilePath = file.getAbsolutePath().substring(root.getAbsolutePath().length() + 1);
+<<<<<<< HEAD
                 /* Java resources always use / as the path separator, as do our resource inclusion patterns. */
                 relativeFilePath = relativeFilePath.replace(separator, "/");
+=======
+                /*
+                 * Java resources always use / as the path separator, as do our resource inclusion
+                 * patterns.
+                 */
+                relativeFilePath = relativeFilePath.replace(File.separatorChar, '/');
+>>>>>>> upstream/master
             }
             if (file.isDirectory()) {
                 if (!relativeFilePath.isEmpty()) {
