@@ -76,6 +76,7 @@ public final class QueryResultParser extends NativeInfoTreeVisitor {
         List<String> lines = FileUtils.readAllLines(source);
         for (String line : lines) {
             String[] keyValuePair = line.split(QueryResultFormat.DELIMINATOR);
+            if (keyValuePair.length != 2) System.err.println("WRONG LINE: "+line);
             assert keyValuePair.length == 2;
             parser.idToResult.put(keyValuePair[0], keyValuePair[1]);
         }
@@ -243,6 +244,9 @@ public final class QueryResultParser extends NativeInfoTreeVisitor {
 
     private String stringLiteral(ElementInfo info) {
         String str = idToResult.get(info.getUniqueID());
+        if (str == null) {
+            System.err.println("No stringliteral for "+info);
+        }
         if (str.startsWith(QueryResultFormat.STRING_MARKER) && str.endsWith(QueryResultFormat.STRING_MARKER)) {
             return str.substring(QueryResultFormat.STRING_MARKER.length(), str.length() - QueryResultFormat.STRING_MARKER.length());
         } else {

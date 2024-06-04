@@ -356,7 +356,7 @@ public final class NativeLibraries {
         if (staticLibsDir == null) {
             /* TODO: Implement other strategies to get static JDK libraries (download + caching) */
         }
-
+//        System.err.println("[NativeLibraries] staticLibsDir = "+staticLibsDir);
         if (staticLibsDir != null) {
             libraryPaths.add(staticLibsDir.toString());
         } else {
@@ -513,6 +513,7 @@ public final class NativeLibraries {
                 classInitializationSupport.initializeAtBuildTime(unit.getClass(), "CContext.Directives must be eagerly initialized");
             }
             result = new NativeCodeContext(unit);
+//            System.err.println("[NATIVELIB] makeContext for compilationUnit "+compilationUnit+" and context = "+result);
             compilationUnitToContext.put(compilationUnit, result);
         }
         return result;
@@ -537,6 +538,7 @@ public final class NativeLibraries {
     public ElementInfo findElementInfo(AnnotatedElement element) {
         Object element1 = unwrap(element);
         ElementInfo result = elementToInfo.get(element1);
+//        System.err.println("[NATIVELIB] findElementInfo, element = "+element+", el1 = "+element1+", result = "+result);
         if (result == null && element1 instanceof ResolvedJavaType && ((ResolvedJavaType) element1).getInterfaces().length == 1) {
             result = findElementInfo(((ResolvedJavaType) element1).getInterfaces()[0]);
         }
@@ -564,8 +566,11 @@ public final class NativeLibraries {
 
     public void finish() {
         libraryPaths.addAll(SubstrateOptions.CLibraryPath.getValue().values().stream().map(Path::toString).collect(Collectors.toList()));
+//        System.err.println("[NATIVELIBRARIES] finish called");
         for (NativeCodeContext context : compilationUnitToContext.values()) {
+//            System.err.println("[NATIVELIBRARIES] process "+context);
             if (context.isInConfiguration()) {
+//                System.err.println("[NATIVELIBRARIES]1 process "+context);
                 libraries.addAll(context.getDirectives().getLibraries());
                 libraryPaths.addAll(context.getDirectives().getLibraryPaths());
                 new CAnnotationProcessor(this, context).process(cache);

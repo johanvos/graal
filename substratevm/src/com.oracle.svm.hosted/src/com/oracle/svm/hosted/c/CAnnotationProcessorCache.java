@@ -117,6 +117,7 @@ public final class CAnnotationProcessorCache {
     private File query;
 
     public CAnnotationProcessorCache() {
+        System.err.println("USECAPCACHE? "+Options.UseCAPCache.getValue() +" and newcc = "+Options.NewCAPCache.getValue());
         if ((Options.UseCAPCache.getValue() || Options.NewCAPCache.getValue())) {
             if (!Options.ExitAfterQueryCodeGeneration.getValue() &&
                             (Options.CAPCacheDir.getValue() == null || Options.CAPCacheDir.getValue().isEmpty())) {
@@ -161,6 +162,7 @@ public final class CAnnotationProcessorCache {
     }
 
     public void get(NativeLibraries nativeLibs, NativeCodeInfo nativeCodeInfo) {
+        System.err.println("[CAnnotProcCache]get, file at "+toPath(nativeCodeInfo)+" and cache = "+cache);
         File file = new File(cache, toPath(nativeCodeInfo));
         try (FileInputStream fis = new FileInputStream(file)) {
             QueryResultParser.parse(nativeLibs, nativeCodeInfo, fis);

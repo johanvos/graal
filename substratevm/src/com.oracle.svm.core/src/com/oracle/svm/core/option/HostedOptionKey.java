@@ -61,7 +61,10 @@ public class HostedOptionKey<T> extends OptionKey<T> implements SubstrateOptionK
     @Fold
     @Override
     public T getValue() {
-        return getValue(HostedOptionValues.singleton());
+//        System.err.println("[HOK] need to get val for "+this+" of class "+this.getClass());
+        T answer = getValue(HostedOptionValues.singleton());
+//        System.err.println("[HOK] got val for "+this+", return "+ answer);
+        return answer;
     }
 
     /**

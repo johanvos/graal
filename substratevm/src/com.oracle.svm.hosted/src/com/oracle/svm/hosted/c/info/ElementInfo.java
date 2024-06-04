@@ -56,6 +56,7 @@ public abstract class ElementInfo {
     }
 
     protected <T extends ElementInfo> T adoptChild(T newChild) {
+//        System.err.println("[ElementInfo] adoptChild "+newChild+" with name "+newChild.name);
         assert newChild.parent == null;
         newChild.parent = this;
         children.add(newChild);

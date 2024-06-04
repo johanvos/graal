@@ -65,6 +65,7 @@ public abstract class InfoTreeVisitor {
 
     protected final void processChildren(ElementInfo info) {
         List<ElementInfo> children = info.getChildren();
+//        System.err.println("[ITV] processChildren, "+children.size()+" children = "+children);
         /*
          * Sort the children before processing. Although storing the children already sorted is
          * possible, that is not necessary. Sorting them in the visitor is enough to get a stable
@@ -78,6 +79,7 @@ public abstract class InfoTreeVisitor {
                 throw UserError.abort(e, "Missing CAP cache value for: %s", child.getUniqueID());
             }
         }
+//        System.err.println("[ITV] done processing "+children.size()+" children");
     }
 
     protected void visitNativeCodeInfo(NativeCodeInfo info) {

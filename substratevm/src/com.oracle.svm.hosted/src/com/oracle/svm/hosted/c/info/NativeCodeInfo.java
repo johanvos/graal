@@ -35,6 +35,7 @@ public class NativeCodeInfo extends ElementInfo {
 
     public NativeCodeInfo(String name, CContext.Directives directives, boolean isBuiltin) {
         super(name);
+//        System.err.println("Create NativeCodeInfo with name = "+name+" and directives = "+directives+" and builtin = "+isBuiltin);
         this.directives = directives;
         this.isBuiltin = isBuiltin;
     }

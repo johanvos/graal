@@ -41,6 +41,8 @@ public class HostedOptionValues extends OptionValues {
     }
 
     public static OptionValues singleton() {
-        return ImageSingletons.lookup(HostedOptionValues.class);
+        OptionValues answer = ImageSingletons.lookup(HostedOptionValues.class);
+//        System.err.println("HOSTEDOPTIONVALUES, ov = "+answer);
+        return answer;
     }
 }

@@ -77,6 +77,8 @@ public class NativeCodeContext {
     }
 
     public void appendConstantAccessor(ResolvedJavaMethod method) {
+//        System.err.println("[NCC] appendConstantAccessor for "+method);
+//        Thread.dumpStack();
         constantAccessors.add(method);
     }
 
