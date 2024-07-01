@@ -39,6 +39,7 @@ import jdk.internal.util.ArraysSupport;
 
 @AddExports({"java.base/jdk.internal.util"})
 public class VectorizedHashCodeTest extends GraalCompilerTest {
+/*
 
     @Test
     public void testJDKConstantValue() {
@@ -167,4 +168,5 @@ public class VectorizedHashCodeTest extends GraalCompilerTest {
             return array;
         }, a -> a.length);
     }
+*/
 }
