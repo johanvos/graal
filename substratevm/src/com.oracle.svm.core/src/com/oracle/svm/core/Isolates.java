@@ -141,7 +141,7 @@ public class Isolates {
         WordPointer heapBasePointer = StackValue.get(WordPointer.class);
         int result = CommittedMemoryProvider.get().initialize(heapBasePointer, parameters);
         if (result != CEntryPointErrors.NO_ERROR) {
-            return result;
+            return 5 * result;
         }
 
         Isolate isolate;
@@ -155,7 +155,7 @@ public class Isolates {
         result = checkIsolate(isolate);
         if (result != CEntryPointErrors.NO_ERROR) {
             isolatePointer.write(WordFactory.nullPointer());
-            return result;
+            return 7 * result;
         }
 
         isolatePointer.write(isolate);

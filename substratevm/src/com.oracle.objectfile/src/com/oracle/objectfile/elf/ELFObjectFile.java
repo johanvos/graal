@@ -214,6 +214,12 @@ public class ELFObjectFile extends ObjectFile {
 
     @Override
     public ELFProgbitsSection newProgbitsSection(Segment segment, String name, int alignment, boolean writable, boolean executable, ProgbitsSectionImpl impl) {
+System.err.println("[ELFJVDBG] newProgbit, segment named " + name+" WX = " + writable+", "+executable);
+if (name.equals(".rodata")) {
+System.err.println("do not OVERRULE!");
+// writable = true;
+System.err.println("2 [ELFJVDBG] newProgbit, segment named " + name+" WX = " + writable+", "+executable);
+}
         EnumSet<ELFSectionFlag> flags = EnumSet.noneOf(ELFSectionFlag.class);
         flags.add(ELFSectionFlag.ALLOC);
         if (executable) {

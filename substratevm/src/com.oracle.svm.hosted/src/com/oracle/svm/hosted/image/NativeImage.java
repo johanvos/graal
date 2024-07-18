@@ -433,7 +433,7 @@ public abstract class NativeImage extends AbstractImage {
             if (ImageLayerBuildingSupport.buildingSharedLayer()) {
                 HostedImageLayerBuildingSupport.singleton().getWriter().persistImageHeapSize(imageHeapSize);
             }
-
+boolean GLUON = true;
             // Text section (code)
             final int textSectionSize = codeCache.getCodeCacheSize();
             final RelocatableBuffer textBuffer = new RelocatableBuffer(textSectionSize, objectFile.getByteOrder());
@@ -443,7 +443,7 @@ public abstract class NativeImage extends AbstractImage {
             // Read-only data section
             final RelocatableBuffer roDataBuffer = new RelocatableBuffer(roSectionSize, objectFile.getByteOrder());
             final ProgbitsSectionImpl roDataImpl = new BasicProgbitsSectionImpl(roDataBuffer.getBackingArray());
-            roDataSection = objectFile.newProgbitsSection(SectionName.RODATA.getFormatDependentName(objectFile.getFormat()), pageSize, false, false, roDataImpl);
+            roDataSection = objectFile.newProgbitsSection(SectionName.RODATA.getFormatDependentName(objectFile.getFormat()), pageSize, GLUON, false, roDataImpl);
 
             // Read-write data section
             final RelocatableBuffer rwDataBuffer = new RelocatableBuffer(rwSectionSize, objectFile.getByteOrder());
@@ -486,7 +486,7 @@ public abstract class NativeImage extends AbstractImage {
 
             long sectionOffsetOfARelocatablePointer = writer.writeHeap(debug, heapSectionBuffer);
             assert !SpawnIsolates.getValue() || heapSectionBuffer.getByteBuffer().getLong((int) sectionOffsetOfARelocatablePointer) == 0L;
-
+            System.err.println("DEFINE IMAGE_HEAP_BEGIN etc");
             defineDataSymbol(Isolates.IMAGE_HEAP_BEGIN_SYMBOL_NAME, heapSection, 0);
             defineDataSymbol(Isolates.IMAGE_HEAP_END_SYMBOL_NAME, heapSection, imageHeapSize);
             defineDataSymbol(Isolates.IMAGE_HEAP_RELOCATABLE_BEGIN_SYMBOL_NAME, heapSection, heapLayout.getReadOnlyRelocatableOffset() - heapLayout.getStartOffset());
@@ -497,10 +497,19 @@ public abstract class NativeImage extends AbstractImage {
             defineDataSymbol(Isolates.IMAGE_HEAP_WRITABLE_END_SYMBOL_NAME, heapSection, heapLayout.getWritableOffset() + heapLayout.getWritableSize() - heapLayout.getStartOffset());
 
             // Mark the sections with the relocations from the maps.
+            System.err.println("MARKRELOCS for text");
             markRelocationSitesFromBuffer(textBuffer, textImpl);
+            System.err.println("MARKRELOCS for rodata");
+
             markRelocationSitesFromBuffer(roDataBuffer, roDataImpl);
+            System.err.println("MARKRELOCS for rwdata");
+
             markRelocationSitesFromBuffer(rwDataBuffer, rwDataImpl);
-            markRelocationSitesFromBuffer(heapSectionBuffer, heapSectionImpl);
+            System.err.println("MARKRELOCS for heap");
+
+            markRelocationSitesFromBuffer(heapSectionBuffer, heapSectionImpl, true);
+            System.err.println("MARKRELOCS for heap done");
+            
 
             // We print the heap statistics after the heap was successfully written because this
             // could modify objects that will be part of the image heap.
@@ -543,12 +552,15 @@ public abstract class NativeImage extends AbstractImage {
     }
 
     public void markRelocationSitesFromBuffer(RelocatableBuffer buffer, ProgbitsSectionImpl sectionImpl) {
+        markRelocationSitesFromBuffer(buffer, sectionImpl, false);
+    }
+    public void markRelocationSitesFromBuffer(RelocatableBuffer buffer, ProgbitsSectionImpl sectionImpl, boolean dbg) {
         for (Map.Entry<Integer, RelocatableBuffer.Info> entry : buffer.getSortedRelocations()) {
             final int offset = entry.getKey();
             final RelocatableBuffer.Info info = entry.getValue();
 
             assert ConfigurationValues.getTarget().arch instanceof AArch64 || checkEmbeddedOffset(sectionImpl, offset, info);
-
+            System.err.println("info target = " + info+" with offset = "+offset);
             // Figure out what kind of relocation site it is.
             if (info.getTargetObject() instanceof CFunctionPointer) {
                 // References to functions are via relocations to the symbol for the function.

@@ -150,6 +150,8 @@ public abstract class NativeImageViaCC extends NativeImage {
 
             int status = linkerProcess.waitFor();
             if (status != 0) {
+                System.err.println("SOME ERROR");
+                Thread.sleep(20000);
                 String output = String.join(System.lineSeparator(), lines);
                 throw handleLinkerFailure("Linker command exited with " + status, commandLine, output);
             }

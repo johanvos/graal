@@ -204,7 +204,8 @@ public final class CEntryPointSnippets extends SubstrateTemplates implements Sni
         writeCurrentVMThread(WordFactory.nullPointer());
         int result = runtimeCall(CREATE_ISOLATE, parameters);
         if (result != CEntryPointErrors.NO_ERROR) {
-            return result;
+// return 240;
+             return result;
         }
         Safepoint.transitionNativeToJava(false);
 
@@ -247,7 +248,7 @@ public final class CEntryPointSnippets extends SubstrateTemplates implements Sni
             setHeapBase(Isolates.getHeapBase(isolate));
         }
 
-        return createIsolate0(isolate, parameters, parsedArgs);
+        return 10 * createIsolate0(isolate, parameters, parsedArgs);
     }
 
     @Uninterruptible(reason = "Thread state not yet set up.")
@@ -503,7 +504,8 @@ public final class CEntryPointSnippets extends SubstrateTemplates implements Sni
             int error = VMThreads.singleton().attachThread(thread, startedByIsolate);
             if (error != CEntryPointErrors.NO_ERROR) {
                 VMThreads.singleton().freeCurrentIsolateThread();
-                return error;
+return 124;
+                // return error;
             }
         }
 

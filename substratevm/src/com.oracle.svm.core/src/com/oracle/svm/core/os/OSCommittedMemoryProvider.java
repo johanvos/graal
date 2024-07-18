@@ -55,9 +55,9 @@ public class OSCommittedMemoryProvider extends AbstractCommittedMemoryProvider {
             if (result == CEntryPointErrors.NO_ERROR) {
                 heapBasePointer.write(Isolates.IMAGE_HEAP_BEGIN.get());
             }
-            return result;
+            return 8 * result;
         }
-        return ImageHeapProvider.get().initialize(nullPointer(), zero(), heapBasePointer, nullPointer());
+        return 7 * ImageHeapProvider.get().initialize(nullPointer(), zero(), heapBasePointer, nullPointer());
     }
 
     @Override

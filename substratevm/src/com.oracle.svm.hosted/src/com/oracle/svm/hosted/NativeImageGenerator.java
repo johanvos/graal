@@ -513,6 +513,14 @@ public class NativeImageGenerator {
                     NativeImageKind k,
                     SubstitutionProcessor harnessSubstitutions,
                     EconomicSet<String> allOptionNames, TimerCollection timerCollection) {
+        System.err.println("STEP-1");
+        System.err.println("entrypoints = "+entryPoints);
+        System.err.println("JavaMainSupport = "+javaMainSupport);
+        System.err.println("imageName = "+imageName);
+        System.err.println("nativeimagekind = "+k);
+        System.err.println("harnesssubs = "+harnessSubstitutions);
+        System.err.println("allopts = "+allOptionNames);
+        System.err.println("timerc = "+timerCollection);
         if (!buildStarted.compareAndSet(false, true)) {
             throw UserError.abort("An image build has already been performed with this generator.");
         }
@@ -545,7 +553,7 @@ public class NativeImageGenerator {
         ImageSingletons.add(BuildArtifacts.class, (type, artifact) -> buildArtifacts.computeIfAbsent(type, t -> new ArrayList<>()).add(artifact));
         ImageSingletons.add(HostedOptionValues.class, hostedOptionValues);
         ImageSingletons.add(RuntimeOptionValues.class, new RuntimeOptionValues(optionProvider.getRuntimeValues(), allOptionNames));
-
+        System.err.println("[JVDBG] STEP 0");
         try (TemporaryBuildDirectoryProviderImpl tempDirectoryProvider = new TemporaryBuildDirectoryProviderImpl()) {
             ImageSingletons.add(TemporaryBuildDirectoryProvider.class, tempDirectoryProvider);
             if (ImageLayerBuildingSupport.buildingSharedLayer()) {
@@ -559,6 +567,7 @@ public class NativeImageGenerator {
         } finally {
             reporter.ensureCreationStageEndCompleted();
         }
+        System.err.println("[JVDBG] STEP 1");
     }
 
     protected static void setSystemPropertiesForImageEarly() {
@@ -587,17 +596,21 @@ public class NativeImageGenerator {
 
         try (DebugContext debug = new Builder(options, new GraalDebugHandlersFactory(GraalAccess.getOriginalSnippetReflection())).build();
                         DebugCloseable featureCleanup = () -> featureHandler.forEachFeature(Feature::cleanup)) {
+            System.err.println("[JVDBG STEP A1");
             setupNativeImage(options, entryPoints, javaMainSupport, harnessSubstitutions, debug);
+            System.err.println("[JVDBG STEP A2");
 
             boolean returnAfterAnalysis = runPointsToAnalysis(imageName, options, debug);
             if (returnAfterAnalysis) {
                 return;
             }
+            System.err.println("[JVDBG STEP A3");
 
             NativeImageHeap heap;
             HostedMetaAccess hMetaAccess;
             RuntimeConfiguration runtimeConfiguration;
             try (ReporterClosable c = reporter.printUniverse()) {
+                System.err.println("[JVDBG STEP A4");
                 loader.watchdog.recordActivity();
 
                 hUniverse = new HostedUniverse(bb);
@@ -615,6 +628,7 @@ public class NativeImageGenerator {
                 runtimeConfiguration = new HostedRuntimeConfigurationBuilder(options, bb.getHostVM(), hUniverse, hMetaAccess,
                                 bb.getProviders(MultiMethod.ORIGINAL_METHOD), classInitializationSupport, GraalAccess.getOriginalProviders().getLoopsDataProvider(), platformConfig,
                                 bb.getSnippetReflectionProvider()).build();
+                System.err.println("[JVDBG STEP A5");
 
                 registerGraphBuilderPlugins(featureHandler, runtimeConfiguration, (HostedProviders) runtimeConfiguration.getProviders(), bb.getMetaAccess(), aUniverse,
                                 nativeLibraries, loader, ParsingReason.AOTCompilation, bb.getAnnotationSubstitutionProcessor(),
@@ -624,6 +638,7 @@ public class NativeImageGenerator {
                 if (NativeImageOptions.PrintUniverse.getValue()) {
                     printTypes();
                 }
+                System.err.println("[JVDBG STEP A6");
 
                 /* Find the entry point methods in the hosted world. */
                 for (AnalysisMethod m : aUniverse.getMethods()) {
@@ -638,6 +653,7 @@ public class NativeImageGenerator {
                 }
 
                 bb.getUnsupportedFeatures().report(bb);
+                System.err.println("[JVDBG STEP A7");
 
                 recordRestrictHeapAccessCallees(aUniverse.getMethods());
 
@@ -652,9 +668,11 @@ public class NativeImageGenerator {
             } catch (UnsupportedFeatureException ufe) {
                 throw FallbackFeature.reportAsFallback(ufe);
             }
+            System.err.println("[JVDBG STEP A8");
 
             var hConstantReflection = (HostedConstantReflectionProvider) runtimeConfiguration.getProviders().getConstantReflection();
             heap = new NativeImageHeap(aUniverse, hUniverse, hMetaAccess, hConstantReflection, ImageSingletons.lookup(ImageHeapLayouter.class));
+            System.err.println("[JVDBG STEP A9");
 
             if (ImageLayerBuildingSupport.buildingSharedLayer()) {
                 HostedImageLayerBuildingSupport.singleton().getWriter().setNativeImageHeap(heap);
@@ -662,6 +680,7 @@ public class NativeImageGenerator {
 
             BeforeCompilationAccessImpl beforeCompilationConfig = new BeforeCompilationAccessImpl(featureHandler, loader, aUniverse, hUniverse, heap, debug, runtimeConfiguration, nativeLibraries);
             featureHandler.forEachFeature(feature -> feature.beforeCompilation(beforeCompilationConfig));
+            System.err.println("[JVDBG STEP A10");
 
             BuildPhaseProvider.markReadyForCompilation();
 
@@ -672,6 +691,7 @@ public class NativeImageGenerator {
                 if (ImageSingletons.contains(RuntimeCompilationCallbacks.class)) {
                     ImageSingletons.lookup(RuntimeCompilationCallbacks.class).onCompileQueueCreation(bb, hUniverse, compileQueue);
                 }
+                System.err.println("[JVDBG STEP A11");
                 compileQueue.finish(debug);
                 BuildPhaseProvider.markCompileQueueFinished();
 
@@ -685,12 +705,14 @@ public class NativeImageGenerator {
                     codeCache.layoutMethods(debug, bb);
                     codeCache.buildRuntimeMetadata(debug, bb.getSnippetReflectionProvider());
                 }
+                System.err.println("[JVDBG STEP A12");
 
                 AfterCompilationAccessImpl config = new AfterCompilationAccessImpl(featureHandler, loader, aUniverse, hUniverse, compileQueue.getCompilations(), codeCache, heap, debug,
                                 runtimeConfiguration, nativeLibraries);
                 featureHandler.forEachFeature(feature -> feature.afterCompilation(config));
                 BuildPhaseProvider.markCompilationFinished();
             }
+            System.err.println("[JVDBG STEP A13");
 
             /* Re-run shadow heap verification after compilation. */
             aUniverse.getHeapVerifier().checkHeapSnapshot(debug, hMetaAccess, "after compilation", bb.getUniverse().getEmbeddedRoots());
@@ -702,25 +724,31 @@ public class NativeImageGenerator {
                 try (DebugContext.Scope buildScope = debug.scope("CreateImage", codeCacheProvider)) {
                     try (StopTimer t = TimerCollection.createTimerAndStart(TimerCollection.Registry.IMAGE)) {
                         loader.watchdog.recordActivity();
+                        System.err.println("[JVDBG STEP A14");
 
                         BeforeHeapLayoutAccessImpl beforeLayoutConfig = new BeforeHeapLayoutAccessImpl(featureHandler, loader, aUniverse, hUniverse, heap, debug, runtimeConfiguration,
                                         nativeLibraries);
                         featureHandler.forEachFeature(feature -> feature.beforeHeapLayout(beforeLayoutConfig));
 
                         verifyAndSealShadowHeap(codeCache, debug, heap);
+                        System.err.println("[JVDBG STEP A15");
 
                         buildNativeImageHeap(heap, codeCache);
+                        System.err.println("[JVDBG STEP A16");
 
                         AfterHeapLayoutAccessImpl config = new AfterHeapLayoutAccessImpl(featureHandler, loader, heap, hMetaAccess, debug);
                         featureHandler.forEachFeature(feature -> feature.afterHeapLayout(config));
 
                         createAbstractImage(k, hostedEntryPoints, heap, hMetaAccess, codeCache);
+                        System.err.println("[JVDBG STEP A17");
 
                         if (ImageSingletons.contains(ObjectFileTransformer.class)) {
                             ImageSingletons.lookup(ObjectFileTransformer.class).afterAbstractImageCreation(image.getObjectFile());
                         }
+                        System.err.println("[JVDBG STEP A18");
 
                         image.build(imageName, debug);
+                        System.err.println("[JVDBG STEP A19");
 
                         if (ImageLayerBuildingSupport.buildingSharedLayer()) {
                             HostedImageLayerBuildingSupport.singleton().getWriter().persistAnalysisInfo(hUniverse, bb.getUniverse());
@@ -734,6 +762,7 @@ public class NativeImageGenerator {
                              */
                             codeCache.printCompilationResults();
                         }
+                        System.err.println("[JVDBG STEP A20");
 
                     }
                 } catch (Throwable e) {

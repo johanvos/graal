@@ -24,6 +24,8 @@
  */
 package com.oracle.svm.core;
 
+import com.oracle.svm.core.log.Log;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
@@ -437,22 +439,25 @@ public class JavaMainWrapper {
     }
 
     private static class EnterCreateIsolateWithCArgumentsPrologue implements CEntryPointOptions.Prologue {
-        private static final CGlobalData<CCharPointer> errorMessage = CGlobalDataFactory.createCString(
-                        "Failed to create the main Isolate.");
+        private static final CGlobalData<CCharPointer> errorMessage2 = CGlobalDataFactory.createCString(
+                        "Failed to create THE main Isolate.");
 
         @SuppressWarnings("unused")
         @Uninterruptible(reason = "prologue")
         public static void enter(int paramArgc, CCharPointerPointer paramArgv) {
+// Log.log().string("[GRAALJVDBG] enter isoluate 1"); 
             CEntryPointCreateIsolateParameters args = MAIN_ISOLATE_PARAMETERS.get();
             args.setVersion(4);
             args.setArgc(paramArgc);
             args.setArgv(paramArgv);
             args.setIgnoreUnrecognizedArguments(false);
             args.setExitWhenArgumentParsingFails(true);
+// System.err.println("[GRAALJVDBG] enter isoluate 2"); 
 
             int code = CEntryPointActions.enterCreateIsolate(args);
+// System.err.println("[GRAALJVDBG] enter isoluate 3"); 
             if (code != CEntryPointErrors.NO_ERROR) {
-                CEntryPointActions.failFatally(code, errorMessage.get());
+                CEntryPointActions.failFatally(code, errorMessage2.get());
             }
         }
     }

@@ -368,7 +368,7 @@ public class NativeImageGeneratorRunner {
 
         HostedOptionParser optionParser = classLoader.classLoaderSupport.getHostedOptionParser();
         OptionValues parsedHostedOptions = classLoader.classLoaderSupport.getParsedHostedOptions();
-
+        System.err.println("parsedHostedOptions = "+parsedHostedOptions);
         String imageName = SubstrateOptions.Name.getValue(parsedHostedOptions);
         TimerCollection timerCollection = new TimerCollection();
         Timer totalTimer = timerCollection.get(TimerCollection.Registry.TOTAL);

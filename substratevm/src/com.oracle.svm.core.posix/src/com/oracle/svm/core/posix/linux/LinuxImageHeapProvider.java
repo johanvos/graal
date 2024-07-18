@@ -24,6 +24,9 @@
  */
 package com.oracle.svm.core.posix.linux;
 
+import static com.oracle.svm.core.posix.headers.Mman.NoTransitions.myprint;
+import static com.oracle.svm.core.posix.headers.Mman.NoTransitions.myprinti;
+
 import static com.oracle.svm.core.Isolates.IMAGE_HEAP_A_RELOCATABLE_POINTER;
 import static com.oracle.svm.core.Isolates.IMAGE_HEAP_BEGIN;
 import static com.oracle.svm.core.Isolates.IMAGE_HEAP_END;
@@ -80,6 +83,7 @@ import com.oracle.svm.core.util.VMError;
 
 import jdk.graal.compiler.word.Word;
 
+// import java.util.logging.Logger;
 /**
  * An optimal image heap provider for Linux which creates isolate image heaps that retain the
  * copy-on-write, lazy loading and reclamation semantics provided by the original heap's backing
@@ -107,6 +111,8 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
     private static final CGlobalData<WordPointer> CACHED_IMAGE_HEAP_OFFSETS = CGlobalDataFactory.createWord();
 
     private static final int MAX_PATHLEN = 4096;
+
+    // private static final Logger logger = Logger.getLogger(LinuxImageHeapProvider.class.getName());
 
     /**
      * Used for caching heap address space size when using layered images. Within layered images
@@ -226,13 +232,13 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
             int error = DynamicMethodAddressResolutionHeapSupport.get().initialize();
             if (error != CEntryPointErrors.NO_ERROR) {
                 freeImageHeap(selfReservedHeapBase);
-                return error;
+                return 2 * error;
             }
 
             error = DynamicMethodAddressResolutionHeapSupport.get().install(heapBase);
             if (error != CEntryPointErrors.NO_ERROR) {
                 freeImageHeap(selfReservedHeapBase);
-                return error;
+                return 3 * error;
             }
         } else {
             heapBase = selfReservedMemory.isNonNull() ? selfReservedMemory : reservedAddressSpace;
@@ -252,9 +258,9 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
             if (result != CEntryPointErrors.NO_ERROR) {
                 freeImageHeap(selfReservedHeapBase);
             }
-            return result;
+            return 40 * result;
         } else {
-            return initializeLayeredImage(imageHeapStart, selfReservedHeapBase, remainingSize, endPointer);
+            return 5 * initializeLayeredImage(imageHeapStart, selfReservedHeapBase, remainingSize, endPointer);
         }
     }
 
@@ -297,7 +303,7 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
          * heap must be in pristine condition for that).
          */
         if (fd.equal(CANNOT_OPEN_FD)) {
-            return initializeImageHeapByCopying(imageHeap, imageHeapSize, pageSize, heapBeginSym, heapWritableSym, heapWritableEndSym);
+            return 6 * initializeImageHeapByCopying(imageHeap, imageHeapSize, pageSize, heapBeginSym, heapWritableSym, heapWritableEndSym);
         }
 
         // Create memory mappings from the image file.
@@ -307,13 +313,20 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
             return CEntryPointErrors.MAP_HEAP_FAILED;
         }
 
+myprint(imageHeap);
+myprint(heapBeginSym);
         if (heapAnyRelocPointer.isNonNull()) {
+ // if (1 < 2) return 13;
             ComparableWord relocatedValue = heapAnyRelocPointer.readWord(0);
             ComparableWord mappedValue = imageHeap.readWord(heapAnyRelocPointer.subtract(heapBeginSym));
             if (relocatedValue.notEqual(mappedValue)) {
                 Pointer linkedRelocsBoundary = roundDown(heapRelocsSym, pageSize);
                 UnsignedWord relocsAlignedSize = roundUp(heapRelocsEndSym.subtract(linkedRelocsBoundary), pageSize);
                 Pointer relocsBoundary = imageHeap.add(linkedRelocsBoundary.subtract(heapBeginSym));
+myprint(linkedRelocsBoundary);
+myprint(imageHeap);
+myprint(heapBeginSym);
+myprint(relocsBoundary);
                 /*
                  * Addresses were relocated by the dynamic linker, so copy them, but first remap the
                  * pages to avoid swapping them in from disk. We need to round to page boundaries,
@@ -323,13 +336,21 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
                  * be part of a chunk with writable objects, in which case the chunk header must
                  * also be writable, and all the chunk's pages will be unprotected below.
                  */
-                Pointer committedRelocsBegin = VirtualMemoryProvider.get().commit(relocsBoundary, relocsAlignedSize, Access.READ | Access.WRITE);
+                Pointer committedRelocsBegin = VirtualMemoryProvider.get().mycommit(relocsBoundary, relocsAlignedSize, Access.READ | Access.WRITE);
                 if (committedRelocsBegin.isNull() || committedRelocsBegin != relocsBoundary) {
-                    return CEntryPointErrors.PROTECT_HEAP_FAILED;
+// logger.info("BUMMER1");
+// System.err.println("BUMMER1");
+                if (committedRelocsBegin.isNull()) {
+                    return 7 * CEntryPointErrors.PROTECT_HEAP_FAILED;
+} else {
+                    return 9 * CEntryPointErrors.PROTECT_HEAP_FAILED;
+}
                 }
                 LibC.memcpy(relocsBoundary, linkedRelocsBoundary, relocsAlignedSize);
                 if (VirtualMemoryProvider.get().protect(relocsBoundary, relocsAlignedSize, Access.READ) != 0) {
-                    return CEntryPointErrors.PROTECT_HEAP_FAILED;
+// logger.info("BUMMER2");
+// System.err.println("BUMMER2");
+                    return 8 * CEntryPointErrors.PROTECT_HEAP_FAILED;
                 }
             }
         }
@@ -344,7 +365,9 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
         UnsignedWord writableSize = heapWritableEndSym.subtract(heapWritableSym);
         UnsignedWord alignedWritableSize = roundUp(writableSize, pageSize);
         if (VirtualMemoryProvider.get().protect(writableBegin, alignedWritableSize, Access.READ | Access.WRITE) != 0) {
-            return CEntryPointErrors.PROTECT_HEAP_FAILED;
+// logger.info("BUMMER3");
+// System.err.println("BUMMER3");
+            return 9 * CEntryPointErrors.PROTECT_HEAP_FAILED;
         }
 
         return CEntryPointErrors.NO_ERROR;
@@ -361,6 +384,8 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
         UnsignedWord readOnlyBytesAtBegin = heapWritableSym.subtract(heapBeginSym);
         readOnlyBytesAtBegin = UnsignedUtils.roundDown(readOnlyBytesAtBegin, pageSize);
         if (readOnlyBytesAtBegin.aboveThan(0) && VirtualMemoryProvider.get().protect(imageHeap, readOnlyBytesAtBegin, Access.READ) != 0) {
+// logger.info("BUMMER4");
+// System.err.println("BUMMER4");
             return CEntryPointErrors.PROTECT_HEAP_FAILED;
         }
         Pointer writableEnd = imageHeap.add(heapWritableEndSym.subtract(heapBeginSym));
@@ -368,6 +393,8 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
         UnsignedWord readOnlyBytesAtEnd = imageHeap.add(imageHeapSize).subtract(writableEnd);
         readOnlyBytesAtEnd = roundUp(readOnlyBytesAtEnd, pageSize);
         if (readOnlyBytesAtEnd.aboveThan(0) && VirtualMemoryProvider.get().protect(writableEnd, readOnlyBytesAtEnd, Access.READ) != 0) {
+// logger.info("BUMMER5");
+// System.err.println("BUMMER5");
             return CEntryPointErrors.PROTECT_HEAP_FAILED;
         }
         return CEntryPointErrors.NO_ERROR;
