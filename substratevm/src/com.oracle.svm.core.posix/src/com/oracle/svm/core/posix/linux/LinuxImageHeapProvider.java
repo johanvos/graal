@@ -83,7 +83,6 @@ import com.oracle.svm.core.util.VMError;
 
 import jdk.graal.compiler.word.Word;
 
-// import java.util.logging.Logger;
 /**
  * An optimal image heap provider for Linux which creates isolate image heaps that retain the
  * copy-on-write, lazy loading and reclamation semantics provided by the original heap's backing
@@ -111,8 +110,6 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
     private static final CGlobalData<WordPointer> CACHED_IMAGE_HEAP_OFFSETS = CGlobalDataFactory.createWord();
 
     private static final int MAX_PATHLEN = 4096;
-
-    // private static final Logger logger = Logger.getLogger(LinuxImageHeapProvider.class.getName());
 
     /**
      * Used for caching heap address space size when using layered images. Within layered images
@@ -232,13 +229,13 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
             int error = DynamicMethodAddressResolutionHeapSupport.get().initialize();
             if (error != CEntryPointErrors.NO_ERROR) {
                 freeImageHeap(selfReservedHeapBase);
-                return 2 * error;
+                return error;
             }
 
             error = DynamicMethodAddressResolutionHeapSupport.get().install(heapBase);
             if (error != CEntryPointErrors.NO_ERROR) {
                 freeImageHeap(selfReservedHeapBase);
-                return 3 * error;
+                return error;
             }
         } else {
             heapBase = selfReservedMemory.isNonNull() ? selfReservedMemory : reservedAddressSpace;
@@ -258,9 +255,9 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
             if (result != CEntryPointErrors.NO_ERROR) {
                 freeImageHeap(selfReservedHeapBase);
             }
-            return 40 * result;
+            return result;
         } else {
-            return 5 * initializeLayeredImage(imageHeapStart, selfReservedHeapBase, remainingSize, endPointer);
+            return initializeLayeredImage(imageHeapStart, selfReservedHeapBase, remainingSize, endPointer);
         }
     }
 
@@ -303,7 +300,7 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
          * heap must be in pristine condition for that).
          */
         if (fd.equal(CANNOT_OPEN_FD)) {
-            return 6 * initializeImageHeapByCopying(imageHeap, imageHeapSize, pageSize, heapBeginSym, heapWritableSym, heapWritableEndSym);
+            return initializeImageHeapByCopying(imageHeap, imageHeapSize, pageSize, heapBeginSym, heapWritableSym, heapWritableEndSym);
         }
 
         // Create memory mappings from the image file.
@@ -316,7 +313,6 @@ public class LinuxImageHeapProvider extends AbstractImageHeapProvider {
 myprint(imageHeap);
 myprint(heapBeginSym);
         if (heapAnyRelocPointer.isNonNull()) {
- // if (1 < 2) return 13;
             ComparableWord relocatedValue = heapAnyRelocPointer.readWord(0);
             ComparableWord mappedValue = imageHeap.readWord(heapAnyRelocPointer.subtract(heapBeginSym));
             if (relocatedValue.notEqual(mappedValue)) {
@@ -338,18 +334,10 @@ myprint(relocsBoundary);
                  */
                 Pointer committedRelocsBegin = VirtualMemoryProvider.get().mycommit(relocsBoundary, relocsAlignedSize, Access.READ | Access.WRITE);
                 if (committedRelocsBegin.isNull() || committedRelocsBegin != relocsBoundary) {
-// logger.info("BUMMER1");
-// System.err.println("BUMMER1");
-                if (committedRelocsBegin.isNull()) {
-                    return 7 * CEntryPointErrors.PROTECT_HEAP_FAILED;
-} else {
-                    return 9 * CEntryPointErrors.PROTECT_HEAP_FAILED;
-}
+                    return CEntryPointErrors.PROTECT_HEAP_FAILED;
                 }
                 LibC.memcpy(relocsBoundary, linkedRelocsBoundary, relocsAlignedSize);
                 if (VirtualMemoryProvider.get().protect(relocsBoundary, relocsAlignedSize, Access.READ) != 0) {
-// logger.info("BUMMER2");
-// System.err.println("BUMMER2");
                     return 8 * CEntryPointErrors.PROTECT_HEAP_FAILED;
                 }
             }
@@ -365,9 +353,7 @@ myprint(relocsBoundary);
         UnsignedWord writableSize = heapWritableEndSym.subtract(heapWritableSym);
         UnsignedWord alignedWritableSize = roundUp(writableSize, pageSize);
         if (VirtualMemoryProvider.get().protect(writableBegin, alignedWritableSize, Access.READ | Access.WRITE) != 0) {
-// logger.info("BUMMER3");
-// System.err.println("BUMMER3");
-            return 9 * CEntryPointErrors.PROTECT_HEAP_FAILED;
+            return CEntryPointErrors.PROTECT_HEAP_FAILED;
         }
 
         return CEntryPointErrors.NO_ERROR;
@@ -384,8 +370,6 @@ myprint(relocsBoundary);
         UnsignedWord readOnlyBytesAtBegin = heapWritableSym.subtract(heapBeginSym);
         readOnlyBytesAtBegin = UnsignedUtils.roundDown(readOnlyBytesAtBegin, pageSize);
         if (readOnlyBytesAtBegin.aboveThan(0) && VirtualMemoryProvider.get().protect(imageHeap, readOnlyBytesAtBegin, Access.READ) != 0) {
-// logger.info("BUMMER4");
-// System.err.println("BUMMER4");
             return CEntryPointErrors.PROTECT_HEAP_FAILED;
         }
         Pointer writableEnd = imageHeap.add(heapWritableEndSym.subtract(heapBeginSym));
@@ -393,8 +377,6 @@ myprint(relocsBoundary);
         UnsignedWord readOnlyBytesAtEnd = imageHeap.add(imageHeapSize).subtract(writableEnd);
         readOnlyBytesAtEnd = roundUp(readOnlyBytesAtEnd, pageSize);
         if (readOnlyBytesAtEnd.aboveThan(0) && VirtualMemoryProvider.get().protect(writableEnd, readOnlyBytesAtEnd, Access.READ) != 0) {
-// logger.info("BUMMER5");
-// System.err.println("BUMMER5");
             return CEntryPointErrors.PROTECT_HEAP_FAILED;
         }
         return CEntryPointErrors.NO_ERROR;

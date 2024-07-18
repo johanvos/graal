@@ -560,7 +560,7 @@ boolean GLUON = true;
             final RelocatableBuffer.Info info = entry.getValue();
 
             assert ConfigurationValues.getTarget().arch instanceof AArch64 || checkEmbeddedOffset(sectionImpl, offset, info);
-            System.err.println("info target = " + info+" with offset = "+offset);
+            // System.err.println("info target = " + info+" with offset = "+offset);
             // Figure out what kind of relocation site it is.
             if (info.getTargetObject() instanceof CFunctionPointer) {
                 // References to functions are via relocations to the symbol for the function.
