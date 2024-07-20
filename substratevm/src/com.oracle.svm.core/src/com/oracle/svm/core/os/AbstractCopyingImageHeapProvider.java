@@ -102,7 +102,6 @@ public abstract class AbstractCopyingImageHeapProvider extends AbstractImageHeap
         if (writableBeginPageOffset.aboveThan(0)) {
             if (VirtualMemoryProvider.get().protect(imageHeap, writableBeginPageOffset, Access.READ) != 0) {
                 freeImageHeap(selfReservedHeapBase);
-System.err.println("BUMP1");
                 return CEntryPointErrors.PROTECT_HEAP_FAILED;
             }
         }
@@ -114,7 +113,6 @@ System.err.println("BUMP1");
             UnsignedWord afterWritableSize = imageHeapSizeInFile.subtract(writableEndPageOffset);
             if (VirtualMemoryProvider.get().protect(afterWritableBoundary, afterWritableSize, Access.READ) != 0) {
                 freeImageHeap(selfReservedHeapBase);
-System.err.println("BUMP2");
                 return CEntryPointErrors.PROTECT_HEAP_FAILED;
             }
         }

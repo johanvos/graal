@@ -36,7 +36,7 @@ import static com.oracle.svm.core.posix.headers.Mman.PROT_READ;
 import static com.oracle.svm.core.posix.headers.Mman.PROT_WRITE;
 import static com.oracle.svm.core.posix.headers.Mman.NoTransitions.mmap;
 import static com.oracle.svm.core.posix.headers.Mman.NoTransitions.mymmap;
-import static com.oracle.svm.core.posix.headers.Mman.NoTransitions.myprint;
+import static com.oracle.svm.core.posix.headers.Mman.NoTransitions.myprinti;
 import static com.oracle.svm.core.posix.headers.Mman.NoTransitions.myprinti;
 import static com.oracle.svm.core.posix.headers.Mman.NoTransitions.mprotect;
 import static com.oracle.svm.core.posix.headers.Mman.NoTransitions.munmap;
@@ -113,6 +113,7 @@ public class PosixVirtualMemoryProvider implements VirtualMemoryProvider {
     @Override
     @Uninterruptible(reason = "Called from uninterruptible code.", mayBeInlined = true)
     public Pointer reserve(UnsignedWord nbytes, UnsignedWord alignment, boolean executable) {
+myprinti(11);
         if (nbytes.equal(0)) {
             return WordFactory.nullPointer();
         }
